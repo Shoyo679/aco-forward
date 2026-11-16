@@ -1,8 +1,9 @@
 # Releasing a new version (for the owner)
 
 Your friend updates by hand: they download the zip from the GitHub release, unzip it over their folder and run
-Install.bat. The app tells them a new version is out by reading a small **public** JSON file (the repository itself
-is private), set in `version.py` as `UPDATE_URL`.
+Install.bat. The app tells them a new version is out by reading a small public JSON file (a gist), set in
+`version.py` as `UPDATE_URL`. The repository is public (https://github.com/Shoyo679/aco-forward), so anyone can
+download releases.
 
 ## Each release
 
@@ -32,8 +33,7 @@ is private), set in `version.py` as `UPDATE_URL`.
 
 ## First-time setup (once)
 
-- Create the private repository `Shoyo679/aco-forward` and push.
-- Invite your friend: GitHub → the repository → Settings → Collaborators → Add people (they need to accept, then
-  they can open Releases and download the zip).
+- Create the repository `Shoyo679/aco-forward` and push (made public on Nov 16 2026: never commit tokens or data;
+  `.gitignore` keeps data/, demo-data/ and .venv out).
 - Create the public gist with `latest.json` and put its **raw** URL (without the commit id, so it always shows the
   newest content) in `UPDATE_URL`, e.g. `https://gist.githubusercontent.com/<you>/<id>/raw/latest.json`.

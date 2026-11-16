@@ -30,9 +30,8 @@ that's on during drops.
 
 1. **Install Python 3.13** (one time): go to https://www.python.org/downloads/, download the Windows installer
    (64-bit), run it, tick **"Add python.exe to PATH"** at the bottom of the first screen, then **Install Now**.
-2. **Download ACO Forward**: open the GitHub link you were given, go to **Releases** (right side), and under the
-   newest version download **ACO-Forward-x.y.z.zip** (you need to be signed in to GitHub with the account that
-   was invited).
+2. **Download ACO Forward**: open https://github.com/Shoyo679/aco-forward/releases and, under the newest version,
+   download **ACO-Forward-x.y.z.zip** (no GitHub account needed).
 3. **Unzip** it somewhere permanent, for example `C:\ACO Forward` (not in Downloads, which gets cleaned up).
 4. Double-click **Install.bat** in that folder. It sets up everything and makes an **ACO Forward** shortcut on
    your Desktop and in the Start menu. The first time takes about a minute.
