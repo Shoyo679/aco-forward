@@ -326,10 +326,21 @@ class App:
         return False
 
     def quit(self) -> None:
+        """Window and tray icon go away at once; Discord then gets at most 3 seconds to disconnect. Nothing is lost
+        if it doesn't answer: data is saved as it arrives, and queued posts / DMs are sent at the next start."""
         self.quitting = True
-        self.bot.stop()
+        t0 = time.perf_counter()
+        if self.window:
+            self.window.hide()
         if self.tray:
             self.tray.stop()
+        stopper = threading.Thread(target=self.bot.stop, kwargs={"timeout": 3}, name="bot-stop", daemon=True)
+        stopper.start()
+        stopper.join(3.5)
+        took = time.perf_counter() - t0
+        log(f"quit: Discord disconnected in {took:.1f} s" if not stopper.is_alive()
+            else f"quit: Discord didn't answer within {took:.1f} s; closed anyway")
+        self._quit_done = True
         if self.window:
             self.window.destroy()
 
@@ -371,7 +382,8 @@ class App:
         self.window.events.closing += self.on_closing
         webview.start(icon=str(ico) if ico.exists() else None, private_mode=True)
         self.quitting = True
-        self.bot.stop()
+        if not getattr(self, "_quit_done", False):   # quit() already stopped the bot (with its 3 s limit)
+            self.bot.stop(timeout=3)
         http.shutdown()
         sig.close()
 

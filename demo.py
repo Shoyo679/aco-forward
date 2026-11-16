@@ -38,7 +38,7 @@ class FakeForwarder:
         self.state = "online"
         self.broadcast("state")
 
-    def stop(self) -> None:
+    def stop(self, timeout: float = 10) -> None:
         pass
 
     def match(self, tag):

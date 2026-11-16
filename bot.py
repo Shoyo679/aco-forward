@@ -119,14 +119,15 @@ class Forwarder:
         self.thread = threading.Thread(target=self._thread, args=(token,), name="discord", daemon=True)
         self.thread.start()
 
-    def stop(self) -> None:
+    def stop(self, timeout: float = 10) -> None:
+        """Disconnect from Discord, waiting at most `timeout` seconds for each step."""
         if self.client and self.loop and self.loop.is_running():
             try:
-                asyncio.run_coroutine_threadsafe(self.client.close(), self.loop).result(10)
+                asyncio.run_coroutine_threadsafe(self.client.close(), self.loop).result(timeout)
             except Exception:
                 pass
         if self.thread:
-            self.thread.join(10)
+            self.thread.join(timeout)
         self.client = self.thread = self._poster_task = self._wake = None
         if self.state not in ("bad_token", "intents"):
             self._set("offline" if self.state != "no_token" else "no_token")

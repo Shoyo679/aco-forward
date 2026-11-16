@@ -2,6 +2,14 @@
 
 Newest first. The version is in `version.py`.
 
+## 1.0.2 (Nov 16 2026)
+
+- **Quit is instant:** the window and tray icon disappear right away; Discord then gets at most 3 seconds to
+  disconnect (before, closing could hang up to 20 seconds while waiting for Discord). Nothing is lost: data is saved
+  as it arrives, and tagged posts or DMs still waiting go out at the next start. The log says how long it took.
+
+Verification: 25 tests; with a Discord that never answers, the window is gone in 0.03 s and the app closes in ~4 s.
+
 ## 1.0.1 (Nov 16 2026)
 
 - **Tagged post:** one line each: **Product**, **Site** (new), **Qty**, **Profile**. The profile is a spoiler
