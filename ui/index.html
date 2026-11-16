@@ -1,0 +1,740 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ACO Forward</title>
+<style>
+:root{--bg:#0d0f14;--side:#11141b;--card:#161a23;--card2:#1c212c;--card3:#232937;--line:rgba(255,255,255,.07);--line2:rgba(255,255,255,.12);
+--tx:#f5f6fa;--tx2:#a7aec0;--tx3:#6d7488;
+--fire:#ff8a3d;--fire2:#ffa766;--tag:#5865f2;--tag2:#8e98ff;--mint:#34d399;--sun:#fbbf24;--coral:#fb7185;--sky:#38bdf8;--pink:#f472b6;
+--dc:#313338;--dc2:#2b2d31;
+--sans:"Segoe UI Variable Text","Segoe UI",system-ui,sans-serif;--disp:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif;--mono:"Cascadia Mono",Consolas,monospace}
+*{box-sizing:border-box}html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font:14.5px/1.55 var(--sans);display:flex;overflow:hidden}
+body:before{content:"";position:fixed;inset:-25% -10% auto auto;width:900px;height:700px;background:radial-gradient(closest-side,rgba(255,138,61,.13),transparent);pointer-events:none}
+button,input,select{font-family:var(--sans);color:inherit}button{cursor:pointer}
+h1,h2,h3{font-family:var(--disp);margin:0;letter-spacing:-.02em}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+svg.s{width:16px;height:16px}
+
+aside{overflow-y:auto;width:264px;background:var(--side);border-right:1px solid var(--line);padding:20px 14px;display:flex;flex-direction:column;gap:4px;flex-shrink:0;position:relative;z-index:2}
+.brand{display:flex;align-items:center;gap:12px;padding:2px 8px 20px}.brand img{width:44px;height:44px}
+.brand b{font:800 17px var(--disp)}.brand small{display:block;color:var(--tx3);font-size:12px;margin-top:-2px}
+.nav{display:flex;align-items:center;gap:12px;padding:10px;border-radius:14px;border:1px solid transparent;background:none;width:100%;text-align:left;transition:.15s}
+.nav .ic{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c);transition:.15s}
+.nav b{display:block;font-size:14.5px;font-weight:650}.nav small{display:block;color:var(--tx3);font-size:12px;line-height:1.3}
+.nav .k{margin-left:auto;font:700 12px var(--mono);border-radius:999px;padding:1px 8px;background:var(--card2);color:var(--tx2)}
+.nav .k.hot{background:var(--sun);color:#2a1d00}
+.nav:hover{background:rgba(255,255,255,.035)}
+.nav.on{background:color-mix(in srgb,var(--c) 10%,transparent);border-color:color-mix(in srgb,var(--c) 35%,transparent)}
+.nav.on .ic{background:var(--c);color:#0d0f14}
+.mini{display:flex;align-items:center;gap:10px;margin-top:auto;padding:12px;border-radius:14px;background:var(--card);border:1px solid var(--line)}
+.mini i{width:10px;height:10px;border-radius:50%;background:var(--sc);box-shadow:0 0 10px var(--sc);flex-shrink:0}
+.mini b{font-size:13px}.mini small{display:block;color:var(--tx3);font-size:11.5px}
+
+main{flex:1;min-width:0;overflow:auto;position:relative}
+.wrap{max-width:1200px;margin:0 auto;padding:30px 34px 70px}
+.view{display:none;animation:in .25s ease}.view.on{display:block}
+@keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.head{display:flex;align-items:flex-end;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+.head h1{font-size:30px;font-weight:800}.head p{margin:4px 0 0;color:var(--tx2);font-size:15px;max-width:680px}
+.head .r{margin-left:auto;display:flex;gap:10px;flex-wrap:wrap}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px 22px}
+.cap{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);font-weight:700}
+.ch{display:flex;align-items:center;gap:10px;margin-bottom:12px}.ch h3{font-size:17px}.ch .r{margin-left:auto}
+.btn{border:0;border-radius:13px;padding:11px 18px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px;transition:transform .1s,filter .15s;white-space:nowrap}
+.btn:hover{filter:brightness(1.1)}.btn:active{transform:scale(.97)}.btn[disabled]{opacity:.45;cursor:not-allowed;filter:none;transform:none}
+.btn.big{padding:15px 24px;font-size:15.5px;border-radius:15px}
+.b-fire{background:linear-gradient(180deg,var(--fire2),var(--fire));color:#2b1300;box-shadow:0 10px 28px rgba(255,138,61,.3)}
+.b-tag{background:linear-gradient(180deg,#7883ff,var(--tag));color:#fff;box-shadow:0 10px 28px rgba(88,101,242,.35)}
+.b-go{background:linear-gradient(180deg,#3ee0a6,#22b67f);color:#062a1d}
+.b-soft{background:var(--card2);border:1px solid var(--line2)}
+.b-warn{background:rgba(251,191,36,.12);color:var(--sun);border:1px solid rgba(251,191,36,.4)}
+.b-bad{background:rgba(251,113,133,.1);color:var(--coral);border:1px solid rgba(251,113,133,.4)}
+.b-sm{padding:7px 12px;font-size:13px;border-radius:10px}
+.link{background:none;border:0;color:var(--tag2);font-weight:650;padding:0}.link:hover{text-decoration:underline}
+input[type=text],input[type=password],input[type=number],select{background:var(--bg);border:1px solid var(--line2);border-radius:11px;padding:10px 12px;font-size:14px;outline:none;transition:border-color .15s,box-shadow .15s}
+input:focus,select:focus{border-color:var(--tag2);box-shadow:0 0 0 3px rgba(88,101,242,.25)}
+input[type=checkbox]{width:17px;height:17px;accent-color:var(--tag);cursor:pointer}
+
+/* the @tag pill: the app's signature */
+.at{display:inline-flex;align-items:center;gap:6px;background:rgba(88,101,242,.18);color:#c9cdfb;border-radius:7px;padding:1px 8px 1px 3px;font-weight:650;white-space:nowrap;font-size:13.5px}
+.at .av{width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:10.5px;font-weight:800;color:#fff;background:var(--uc)}
+.at.none{background:rgba(251,191,36,.13);color:var(--sun);padding:1px 8px}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--c) 15%,transparent);color:var(--c);white-space:nowrap}
+.pill i{width:7px;height:7px;border-radius:50%;background:currentColor}
+.warn{display:flex;gap:12px;align-items:flex-start;padding:13px 16px;border-radius:14px;background:rgba(251,191,36,.08);border:1px solid rgba(251,191,36,.3);color:#fde3a0;font-size:14px}
+.warn.bad{background:rgba(251,113,133,.08);border-color:rgba(251,113,133,.35);color:#fecdd3}
+.warn.ok{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.3);color:#bbf7d0}
+.warn svg{margin-top:1px}
+.empty{padding:34px 20px;text-align:center;color:var(--tx3)}.empty b{display:block;color:var(--tx2);font-size:15px;margin-bottom:4px}
+
+/* home */
+.hero{display:grid;grid-template-columns:auto 1fr auto;gap:28px;align-items:center;border-radius:26px;padding:26px 30px;position:relative;overflow:hidden;
+background:radial-gradient(520px 260px at 10% 30%,color-mix(in srgb,var(--hc) 24%,transparent),transparent 70%),radial-gradient(600px 300px at 100% 120%,rgba(88,101,242,.2),transparent 65%),var(--card);border:1px solid color-mix(in srgb,var(--hc) 38%,transparent)}
+.hero img{width:128px;height:128px;animation:bob 3.2s ease-in-out infinite}@keyframes bob{50%{transform:translateY(-7px)}}
+.hero h2{font-size:36px;font-weight:800;line-height:1.08}.hero h2 em{font-style:normal;color:var(--hc)}
+.hero p{margin:8px 0 0;color:var(--tx2);font-size:15px;max-width:560px}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}
+.tile{border-radius:20px;padding:18px 20px;position:relative;overflow:hidden;border:1px solid var(--line);background:linear-gradient(150deg,color-mix(in srgb,var(--c) 18%,var(--card)),var(--card) 62%);text-align:left;cursor:default}
+.tile.click{cursor:pointer}.tile.click:hover{border-color:color-mix(in srgb,var(--c) 45%,transparent)}
+.tile .n{font:800 40px/1.05 var(--disp);letter-spacing:-.03em;color:var(--c);margin:6px 0 2px}
+.tile small{color:var(--tx2)}
+.tile .em{position:absolute;right:16px;top:14px;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c)}
+.pop{animation:pop .5s ease}@keyframes pop{40%{transform:scale(1.07)}}
+.grid2{display:grid;grid-template-columns:1.25fr 1fr;gap:16px;margin-top:16px}
+.feed{display:flex;flex-direction:column}
+.fi{display:grid;grid-template-columns:66px 1fr auto;gap:12px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--line)}
+.fi:last-child{border-bottom:0}.fi.new{animation:flash 1.6s ease}@keyframes flash{0%{background:rgba(255,138,61,.18)}100%{background:transparent}}
+.fi .t{color:var(--tx3);font:12px var(--mono);white-space:nowrap}
+.fi .p{min-width:0}.fi .p b{display:block;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fi .p small{color:var(--tx3)}
+.thumb{width:40px;height:40px;border-radius:10px;background:var(--card2) center/cover;flex-shrink:0;display:grid;place-items:center;color:var(--tx3)}
+.hl{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}.hl:last-child{border-bottom:0}
+.hl .d{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.hl .nm{min-width:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bars{display:flex;align-items:flex-end;gap:8px;height:84px;margin-top:8px}
+.bars div{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;height:100%;justify-content:flex-end}
+.bars span{width:100%;border-radius:6px 6px 3px 3px;background:linear-gradient(180deg,var(--fire2),color-mix(in srgb,var(--fire) 50%,transparent));min-height:3px;transition:height .5s}
+.bars small{font-size:11px;color:var(--tx3)}
+.check{margin-top:16px;border-radius:20px;padding:20px 22px;background:var(--card);border:1px solid rgba(255,138,61,.35)}
+.check .bar{height:8px;border-radius:99px;background:var(--card2);margin:10px 0 4px;overflow:hidden}
+.check .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--fire),var(--sun));border-radius:99px;transition:width .6s}
+.steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:12px}
+.step{border-radius:14px;padding:12px;background:var(--card2);border:1px solid var(--line);font-size:13px}
+.step .t{display:flex;gap:8px;align-items:center;font-weight:700;font-size:13.5px}
+.step .dot{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;background:var(--line2);color:var(--tx2);flex-shrink:0}
+.step.done{border-color:rgba(52,211,153,.35)}.step.done .dot{background:var(--mint);color:#062a1d}
+.step p{margin:6px 0 0;color:var(--tx3)}
+
+/* tables */
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t th{text-align:left;font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--tx3);font-weight:700;padding:0 10px 10px;border-bottom:1px solid var(--line2)}
+table.t td{padding:11px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+table.t tr:last-child td{border-bottom:0}
+table.t .r{text-align:right}
+table.t tr.dim td{opacity:.5}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;align-items:center}
+
+/* customer chips on Checkouts */
+.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px;margin-bottom:16px}
+.chip{border-radius:16px;padding:14px 16px;background:var(--card);border:1px solid var(--line);position:relative;overflow:hidden;text-align:left;transition:border-color .15s}
+.chip:before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--uc)}
+.chip.on{border-color:var(--tag2)}
+.chip .n{font:800 26px var(--disp);margin-top:6px}.chip small{color:var(--tx3)}
+
+/* needs assigning */
+.grp{border-radius:18px;background:var(--card);border:1px solid rgba(251,191,36,.28);margin-bottom:14px;overflow:hidden}
+.grp .gh{display:flex;gap:14px;align-items:center;padding:16px 20px;background:rgba(251,191,36,.05);border-bottom:1px solid var(--line)}
+.grp .gh code{font:700 15px var(--mono);background:var(--bg);border:1px solid var(--line2);padding:3px 10px;border-radius:9px}
+.grp .gb{padding:6px 20px 14px}
+.assign{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:14px 20px;border-top:1px solid var(--line);background:var(--card2)}
+.picker{position:relative;width:260px}
+.picker input{width:100%}
+.picker .dd{position:absolute;left:0;right:0;top:calc(100% + 6px);background:var(--card3);border:1px solid var(--line2);border-radius:12px;padding:6px;z-index:20;box-shadow:0 18px 40px rgba(0,0,0,.45);max-height:280px;overflow:auto}
+.picker .dd button{display:flex;width:100%;gap:8px;align-items:center;background:none;border:0;border-radius:8px;padding:7px 8px;text-align:left}
+.picker .dd button:hover,.picker .dd button.on{background:rgba(88,101,242,.2)}
+.sticky{position:sticky;bottom:16px;display:flex;gap:12px;align-items:center;padding:14px 18px;border-radius:16px;background:var(--card3);border:1px solid var(--line2);box-shadow:0 18px 50px rgba(0,0,0,.5);margin-top:16px;z-index:5}
+
+/* drops */
+.drops{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:14px}
+.drop{border-radius:20px;background:var(--card);border:1px solid var(--line);padding:18px 20px;position:relative;transition:border-color .15s,transform .15s;cursor:pointer}
+.drop:hover{border-color:var(--line2);transform:translateY(-2px)}
+.drop.sel{border-color:var(--fire);box-shadow:0 0 0 3px rgba(255,138,61,.18)}
+.drop .top{display:flex;gap:10px;align-items:center}
+.drop h3{font-size:18px}.drop .when{color:var(--tx2);font-size:13.5px;margin-top:2px}
+.drop .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:14px 0 10px}
+.drop .nums div{background:var(--card2);border-radius:12px;padding:8px 10px}.drop .nums b{display:block;font:800 20px var(--disp)}.drop .nums small{color:var(--tx3);font-size:12px}
+.drop .tick{position:absolute;right:16px;top:16px}
+.drop .foot{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--tx3)}
+
+/* drop detail */
+.back{display:inline-flex;gap:6px;align-items:center;color:var(--tx2);background:none;border:0;padding:0;margin-bottom:12px;font-weight:600}
+.back:hover{color:var(--tx)}
+.stepper{display:flex;gap:10px;margin-bottom:16px}
+.stepper div{flex:1;border-radius:14px;padding:12px 14px;background:var(--card);border:1px solid var(--line);display:flex;gap:10px;align-items:center;font-weight:700}
+.stepper div span{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--card3);font-size:13px}
+.stepper div.on{border-color:rgba(255,138,61,.5)}.stepper div.on span{background:var(--fire);color:#2b1300}
+.stepper div.done span{background:var(--mint);color:#062a1d}
+.fee{display:flex;align-items:center;gap:6px;justify-content:flex-end}
+.fee input{width:96px;text-align:right;font-family:var(--mono)}
+.fee .cur{color:var(--tx3);font-family:var(--mono)}
+.fee input.miss{border-color:rgba(251,191,36,.6)}
+.dms{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:14px}
+
+/* Discord look: preview of the real messages */
+.dc{background:var(--dc);border-radius:16px;padding:14px 16px;font-family:"gg sans","Segoe UI",system-ui,sans-serif;color:#dbdee1;font-size:14px;line-height:1.45;border:1px solid rgba(255,255,255,.05)}
+.dc .row{display:flex;gap:12px}.dc .bav{width:38px;height:38px;border-radius:50%;flex-shrink:0;background:var(--tag) center/cover;display:grid;place-items:center;font-weight:800;color:#fff;font-size:13px}
+.dc .nm{color:#f2f3f5;font-weight:600}.dc .app{background:var(--tag);color:#fff;font-size:10px;font-weight:700;border-radius:3px;padding:1px 4px;margin-left:4px;vertical-align:1px}
+.dc .tm{color:#949ba4;font-size:12px;margin-left:6px}
+.dc .men{background:rgba(88,101,242,.3);color:#c9cdfb;border-radius:3px;padding:0 2px;font-weight:600}
+.dc .em{margin-top:6px;background:var(--dc2);border-left:4px solid var(--ec);border-radius:4px;padding:11px 14px 12px}
+.dc .et{color:#f2f3f5;font-weight:700;font-size:15px}
+.dc .ed{color:#b5bac1;font-size:12.5px;margin:2px 0 8px}
+.dc .ln{padding:6px 0;border-top:1px solid #3f4147}.dc .ln:first-of-type{border-top:0}
+.dc .ln b{color:#f2f3f5;font-weight:600;display:block}.dc .ln span{font-size:13px}
+.dc .tot{display:flex;gap:28px;margin-top:8px}.dc .tot small{display:block;color:#f2f3f5;font-weight:700;font-size:12.5px}.dc .tot b{color:#fff;font-size:15px}
+.dc .ef{color:#949ba4;font-size:11.5px;margin-top:8px}
+.dmstat{display:flex;gap:8px;align-items:center;margin-top:10px;font-size:13px;flex-wrap:wrap}
+.dc .md{color:#dbdee1;font-size:13.5px;margin-top:6px}.dc .md b{color:#f2f3f5}.dc .md s{color:#949ba4}
+.dc .fl{margin-top:10px}.dc .fl b{display:block;color:#f2f3f5;font-size:12.5px}
+.stat{border:1px solid;border-radius:999px;padding:3px 11px;font-size:12px;font-weight:700;background:rgba(52,211,153,.1);color:var(--mint);border-color:rgba(52,211,153,.35)}
+.stat.off{background:rgba(251,113,133,.1);color:var(--coral);border-color:rgba(251,113,133,.4)}
+.stat:hover{filter:brightness(1.2)}
+.ubar{display:flex;gap:14px;align-items:center;padding:14px 18px;border-radius:16px;margin-bottom:18px;background:linear-gradient(90deg,rgba(88,101,242,.22),rgba(255,138,61,.12));border:1px solid rgba(142,152,255,.4)}
+.ubar ul{margin:4px 0 0;padding-left:18px;color:var(--tx2);font-size:13.5px}
+.gd{max-width:860px;line-height:1.65;font-size:15px;color:var(--tx2)}
+.gd h1{font-size:30px;color:var(--tx);margin:0 0 10px}.gd h2{font-size:23px;color:var(--tx);margin:34px 0 10px;scroll-margin-top:16px}
+.gd h3{font-size:17.5px;color:var(--tx);margin:24px 0 8px;scroll-margin-top:16px}.gd b{color:var(--tx)}
+.gd code{font:13.5px var(--mono);background:var(--card2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;color:var(--fire2)}
+.gd pre{background:var(--bg);border:1px solid var(--line2);border-radius:12px;padding:12px 14px;overflow:auto}.gd pre code{background:none;border:0;padding:0;color:var(--tx2)}
+.gd a{color:var(--tag2);text-decoration:none;font-weight:600}.gd a:hover{text-decoration:underline}
+.gd hr{border:0;border-top:1px solid var(--line2);margin:28px 0}.gd li{margin:4px 0}
+.gd table{border-collapse:collapse;width:100%;font-size:14px;margin:10px 0}.gd th,.gd td{border-bottom:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}.gd th{color:var(--tx3);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.tour{position:fixed;inset:0;z-index:80;pointer-events:none}
+.tour .hole{position:fixed;border-radius:16px;box-shadow:0 0 0 9999px rgba(5,6,10,.72),0 0 0 3px var(--fire);transition:all .3s ease;pointer-events:none}
+.tour .tip{position:fixed;width:340px;background:var(--card);border:1px solid var(--line2);border-radius:18px;padding:18px 20px;box-shadow:0 24px 60px rgba(0,0,0,.6);pointer-events:auto;transition:all .3s ease}
+.tour .tip h3{font-size:18px;margin-bottom:6px}.tour .tip p{margin:0;color:var(--tx2);font-size:14px}
+.tour .tip .row{display:flex;gap:8px;align-items:center;margin-top:16px}.tour .dots{display:flex;gap:5px;margin-right:auto}.tour .dots i{width:7px;height:7px;border-radius:50%;background:var(--line2)}.tour .dots i.on{background:var(--fire)}
+.split{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(360px,1fr);gap:16px;align-items:start}
+.split .side{position:sticky;top:12px}
+tr.pick{cursor:pointer}tr.pick:hover td{background:rgba(255,255,255,.03)}tr.pick.on td{background:rgba(88,101,242,.14)}
+.prog{height:8px;border-radius:99px;background:var(--card3);overflow:hidden;flex:1}.prog i{display:block;height:100%;background:var(--mint);border-radius:99px;transition:width .4s}
+.pager{display:flex;gap:10px;align-items:center;justify-content:flex-end;margin-top:12px;color:var(--tx3);font-size:13px}
+.fchip{border:1px solid var(--line2);background:none;border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600;color:var(--tx2)}
+.fchip.on{background:rgba(88,101,242,.18);border-color:var(--tag2);color:#c9cdfb}
+label.fld{display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--tx2);font-weight:600}
+.drop .tick[disabled]{opacity:.25;cursor:not-allowed}
+.drop .parts{margin-top:6px;font-size:12.5px;color:var(--tx3)}
+textarea{background:var(--bg);border:1px solid var(--line2);border-radius:11px;padding:10px 12px;font:14px var(--sans);color:inherit;outline:none;width:100%;resize:vertical;min-height:70px}
+textarea:focus{border-color:var(--tag2);box-shadow:0 0 0 3px rgba(88,101,242,.25)}
+
+/* fees */
+.ledger td .owed{font:800 17px var(--mono)}
+.paid0{color:var(--mint)}
+
+/* setup */
+.sstep{display:grid;grid-template-columns:48px 1fr;gap:16px;margin-bottom:16px}
+.sstep .no{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;font:800 20px var(--disp);background:var(--card2);border:1px solid var(--line2)}
+.sstep.done .no{background:var(--mint);color:#062a1d;border-color:transparent}
+ol.guide{margin:10px 0 0;padding-left:20px;color:var(--tx2)}ol.guide li{margin:3px 0}ol.guide b{color:var(--tx)}
+.srv{border-radius:16px;border:1px solid var(--line);background:var(--card2);margin-top:12px;overflow:hidden}
+.srv .sh{display:flex;gap:10px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+.srv .sh .gi{width:30px;height:30px;border-radius:10px;background:var(--card3) center/cover;display:grid;place-items:center;font-size:12px}
+.chn{display:grid;grid-template-columns:1fr 120px 120px;gap:10px;align-items:center;padding:8px 16px;border-bottom:1px solid var(--line);font-size:14px}
+.chn:last-child{border-bottom:0}
+.chn .cn{color:var(--tx2)}.chn .cn b{color:var(--tx);font-weight:600}.chn .cn small{color:var(--tx3);margin-left:6px;font-size:11.5px}
+.chn label{display:flex;gap:7px;align-items:center;font-size:13px;color:var(--tx2);cursor:pointer}
+.chn .noacc{font-size:12.5px;color:var(--tx3)}
+.guidebox{border-radius:16px;padding:16px 18px;background:var(--bg);border:1px dashed var(--line2);margin-top:10px}
+.guidebox code{font:700 14px var(--mono);color:var(--fire2)}
+.toggle{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}.toggle:last-child{border-bottom:0}
+.toggle b{display:block}.toggle small{color:var(--tx3)}
+.sw{margin-left:auto;width:46px;height:26px;border-radius:99px;background:var(--card3);border:1px solid var(--line2);position:relative;transition:.2s;flex-shrink:0}
+.sw:after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--tx2);transition:.2s}
+.sw.on{background:var(--mint);border-color:transparent}.sw.on:after{left:23px;background:#062a1d}
+
+/* modal + toast */
+.scrim{position:fixed;inset:0;background:rgba(5,6,10,.65);display:none;align-items:center;justify-content:center;z-index:50;backdrop-filter:blur(3px)}
+.scrim.on{display:flex}
+.modal{width:min(520px,92vw);background:var(--card);border:1px solid var(--line2);border-radius:22px;padding:24px;box-shadow:0 30px 80px rgba(0,0,0,.6);animation:in .2s ease}
+.modal h3{font-size:21px;margin-bottom:6px}.modal p{color:var(--tx2);margin:0 0 14px}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:18px}
+.toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,20px);opacity:0;background:var(--card3);border:1px solid var(--line2);border-radius:14px;padding:12px 18px;font-weight:600;transition:.25s;z-index:60;box-shadow:0 16px 40px rgba(0,0,0,.5);pointer-events:none}
+.toast.on{opacity:1;transform:translate(-50%,0)}.toast.bad{border-color:rgba(251,113,133,.5);color:#fecdd3}
+.demo{position:fixed;top:12px;right:16px;z-index:40}
+@media (max-width:1100px){.tiles{grid-template-columns:repeat(2,1fr)}.grid2{grid-template-columns:1fr}.steps{grid-template-columns:repeat(3,1fr)}.hero{grid-template-columns:auto 1fr}.hero .acts{grid-column:1/3}}
+</style></head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></symbol>
+<symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+<symbol id="i-at" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></symbol>
+<symbol id="i-drop" viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+<symbol id="i-cash" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+<symbol id="i-warn" viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+<symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6L9 17l-5-5"/></symbol>
+<symbol id="i-send" viewBox="0 0 24 24"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></symbol>
+<symbol id="i-link" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.5.5l3-3a5 5 0 0 0-7-7l-1.7 1.7"/><path d="M14 11a5 5 0 0 0-7.5-.5l-3 3a5 5 0 0 0 7 7l1.7-1.7"/></symbol>
+<symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></symbol>
+<symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3M12 17h.01"/></symbol>
+<symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+<symbol id="i-box" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4a2 2 0 0 0 1-1.7z"/></symbol>
+<symbol id="i-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></symbol>
+</defs></svg>
+
+<aside>
+  <div class="brand"><img src="/logo.png" alt="" onerror="this.style.display='none'"><div><b>ACO Forward</b><small>Tag, track and bill · <span id="ver"></span></small></div></div>
+  <button class="nav" data-v="home" style="--c:var(--fire)"><span class="ic"><svg class="i"><use href="#i-home"/></svg></span><span><b>Home</b><small>Status and live checkouts</small></span></button>
+  <button class="nav" data-v="checkouts" style="--c:var(--sky)"><span class="ic"><svg class="i"><use href="#i-list"/></svg></span><span><b>Checkouts</b><small>Per customer, per drop</small></span></button>
+  <button class="nav" data-v="needs" style="--c:var(--sun)"><span class="ic"><svg class="i"><use href="#i-at"/></svg></span><span><b>Needs assigning</b><small>Profile names that matched no one</small></span><span class="k" id="kNeeds">0</span></button>
+  <button class="nav" data-v="drops" style="--c:var(--pink)"><span class="ic"><svg class="i"><use href="#i-drop"/></svg></span><span><b>Drops</b><small>Fees, preview and send</small></span><span class="k" id="kDrops">0</span></button>
+  <button class="nav" data-v="fees" style="--c:var(--mint)"><span class="ic"><svg class="i"><use href="#i-cash"/></svg></span><span><b>Fees</b><small>Owed and paid</small></span></button>
+  <button class="nav" data-v="setup" style="--c:var(--tag2)"><span class="ic"><svg class="i"><use href="#i-gear"/></svg></span><span><b>Setup</b><small>Bot, channels, profile names</small></span></button>
+  <button class="nav" data-v="help" style="--c:var(--mint)"><span class="ic"><svg class="i"><use href="#i-help"/></svg></span><span><b>Help</b><small>Guide and first-time tour</small></span></button>
+  <div class="mini" id="mini"><i></i><div><b>Starting…</b><small></small></div></div>
+</aside>
+
+<main><div class="wrap">
+<div id="updBar"></div>
+
+<!-- HOME -->
+<section class="view" id="v-home">
+  <div class="hero" id="hero">
+    <img src="/logo.png" alt="" onerror="this.style.visibility='hidden'">
+    <div><div class="cap" id="heroCap">ACO Forward</div><h2 id="heroH"></h2><p id="heroP"></p></div>
+    <div class="acts" id="heroActs" style="display:flex;gap:10px;flex-wrap:wrap"></div>
+  </div>
+  <div id="checklist"></div>
+  <div class="tiles">
+    <div class="tile" style="--c:var(--fire)"><span class="em"><svg class="i"><use href="#i-box"/></svg></span><div class="cap">Checkouts today</div><div class="n num" id="tToday">0</div><small id="tTodayS"></small></div>
+    <div class="tile" style="--c:var(--tag2)"><span class="em"><svg class="i"><use href="#i-at"/></svg></span><div class="cap">Tagged today</div><div class="n num" id="tTagged">—</div><small id="tTaggedS"></small></div>
+    <button class="tile click" style="--c:var(--sun)" onclick="go('needs')"><span class="em"><svg class="i"><use href="#i-warn"/></svg></span><div class="cap">Needs assigning</div><div class="n num" id="tNeeds">0</div><small id="tNeedsS"></small></button>
+    <button class="tile click" style="--c:var(--mint)" onclick="go('fees')"><span class="em"><svg class="i"><use href="#i-cash"/></svg></span><div class="cap">Owed to you</div><div class="n num" id="tOwed">$0</div><small id="tOwedS"></small></button>
+  </div>
+  <div class="grid2">
+    <div class="card"><div class="ch"><h3>Live checkouts</h3><span class="pill" style="--c:var(--mint)" id="liveDot"><i></i>Live</span><button class="link r" onclick="go('checkouts')">See all</button></div><div class="feed" id="feed"></div></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card"><div class="ch"><h3>Bot health</h3><button class="link r" onclick="go('setup')">Setup</button></div><div id="health"></div></div>
+      <div class="card"><div class="ch"><h3>Last 7 days</h3><span class="r cap" id="weekTot"></span></div><div class="bars" id="week"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- CHECKOUTS -->
+<section class="view" id="v-checkouts">
+  <div class="head"><div><h1>Checkouts</h1><p>Every checkout from your source channels, who it was tagged to, and how. Order numbers are only shown here, never in Discord.</p></div>
+    <div class="r"><button class="btn b-fire" onclick="addModal()">+ Add checkout</button></div></div>
+  <div class="filters">
+    <select id="fDrop"></select>
+    <select id="fUser"><option value="">All customers</option></select>
+    <select id="fStatus"><option value="">All orders</option><option value="active">Active</option><option value="cancelled">Cancelled</option></select>
+    <input type="text" id="fText" placeholder="Search product, profile, customer or order number" style="width:340px">
+  </div>
+  <div class="card" style="padding:14px 16px"><table class="t" id="ckTable"></table><div class="pager" id="ckPager"></div></div>
+</section>
+
+<!-- NEEDS ASSIGNING -->
+<section class="view" id="v-needs">
+  <div class="head"><div><h1>Needs assigning</h1><p>These profile names don't start with a Discord username the bot can find. Tick the checkouts, pick the customer, and they're tagged. They can't be billed until they belong to someone.</p></div></div>
+  <div id="needsBody"></div>
+  <div class="card" style="margin-top:18px"><div class="ch"><h3>Remembered profile names</h3><small style="color:var(--tx3)">Always tagged to the same customer</small></div><div id="rules"></div></div>
+</section>
+
+<!-- DROPS -->
+<section class="view" id="v-drops">
+  <div id="dropsList">
+    <div class="head"><div><h1>Drops</h1><p>A drop ends after 90 minutes with no checkouts. Tick two or more open drops to combine them into one bill (for example a restock after a long gap).</p></div>
+      <div class="r"><button class="btn b-fire" id="combineBtn" onclick="combine()" disabled><svg class="i s"><use href="#i-link"/></svg>Combine selected</button></div></div>
+    <div class="drops" id="drops"></div>
+  </div>
+  <div id="dropDetail" style="display:none"></div>
+</section>
+
+<!-- FEES -->
+<section class="view" id="v-fees">
+  <div class="head"><div><h1>Fees</h1><p>Each sent drop summary adds to the customer's balance. Mark payments as they come in.</p></div></div>
+  <div class="tiles" style="grid-template-columns:repeat(3,1fr);margin:0 0 16px">
+    <div class="tile" style="--c:var(--mint)"><div class="cap">Owed to you</div><div class="n num" id="fOwed">$0</div><small id="fOwedS"></small></div>
+    <div class="tile" style="--c:var(--fire)"><div class="cap">Billed, all time</div><div class="n num" id="fBilled">$0</div><small id="fBilledS"></small></div>
+    <div class="tile" style="--c:var(--tag2)"><div class="cap">Paid, all time</div><div class="n num" id="fPaid">$0</div><small>Recorded payments</small></div>
+  </div>
+  <div class="card"><table class="t ledger" id="ledger"></table></div>
+</section>
+
+<!-- SETUP -->
+<section class="view" id="v-setup">
+  <div class="head"><div><h1>Setup</h1><p>Your own Discord bot reads the checkout channels and posts the tags. The source channels and the output channel can be in different servers; the bot just has to be in both.</p></div></div>
+  <div class="sstep" id="s1"><div class="no">1</div><div class="card">
+    <div class="ch"><h3>Your Discord bot</h3><span class="r" id="botPill"></span></div>
+    <div id="botBody"></div>
+  </div></div>
+  <div class="sstep" id="s2"><div class="no">2</div><div class="card">
+    <div class="ch"><h3>Channels</h3><span class="r" style="display:flex;gap:8px"><button class="btn b-soft b-sm" onclick="loadServers()"><svg class="i s"><use href="#i-refresh"/></svg>Refresh</button><button class="btn b-soft b-sm" onclick="testPost()">Send test post</button></span></div>
+    <p style="margin:0;color:var(--tx2)">Tick <b>Read</b> on every channel where Valor, Shikari, sniped.gg and Refract post their checkouts. Pick one <b>Output</b> channel for the tagged posts. Don't send aco-tool's mirror into the same channel, or every checkout shows twice.</p>
+    <div id="servers"></div>
+    <div style="display:flex;gap:10px;margin-top:14px;align-items:center"><button class="btn b-tag" onclick="saveChannels()"><svg class="i s"><use href="#i-check"/></svg>Save channels</button><span id="chanMsg" style="color:var(--tx3);font-size:13.5px"></span></div>
+  </div></div>
+  <div class="sstep done"><div class="no">3</div><div class="card">
+    <div class="ch"><h3>Profile name guideline</h3><button class="btn b-soft b-sm r" onclick="copyGuide()"><svg class="i s"><use href="#i-copy"/></svg>Copy for customers</button></div>
+    <div class="guidebox" id="guide">
+      <b>Profile names: how to get tagged</b>
+      <p style="margin:6px 0;color:var(--tx2)">Name every profile <code>&lt;your Discord username&gt; &lt;anything&gt;</code></p>
+      <ul style="margin:6px 0 0;padding-left:20px;color:var(--tx2)">
+        <li>Start with your <b>Discord username</b>, not your display name (click your avatar: it's the lowercase name, like <code>nova.runs</code>).</li>
+        <li>Then <b>one space</b>, then anything that tells your profiles apart: <code>1</code>, <code>2</code>, <code>1cxd</code>, <code>amex</code>.</li>
+        <li>Good: <code>nova.runs 1</code>, <code>nova.runs 2</code>, <code>nova.runs 1cxd</code></li>
+        <li>Not tagged: <code>nova.runs1</code> (no space), <code>Nova 1</code> (display name). Your runner can still assign these by hand.</li>
+      </ul>
+    </div>
+  </div></div>
+  <div class="sstep done"><div class="no">4</div><div class="card">
+    <div class="ch"><h3>Fee messages</h3></div>
+    <p style="margin:0 0 10px;color:var(--tx2)">Shown at the bottom of every fee message and reminder, under <b>How to pay</b>.</p>
+    <textarea id="payNoteIn" maxlength="500" placeholder="Pay within 2 days to Cash App $yourname or PayPal you@example.com"></textarea>
+    <div style="display:flex;gap:12px;align-items:center;margin-top:12px;flex-wrap:wrap"><span style="color:var(--tx2)">Payment is due</span><input type="number" id="dueIn" min="0" max="60" style="width:80px"><span style="color:var(--tx2)">days after the summary is sent (0 = no due date)</span>
+    <button class="btn b-tag" style="margin-left:auto" onclick="saveFeeMsg()"><svg class="i s"><use href="#i-check"/></svg>Save</button></div>
+  </div></div>
+  <div class="sstep"><div class="no" style="font-size:16px">⚙</div><div class="card">
+    <div class="ch"><h3>App</h3></div>
+    <div class="toggle"><div><b>Start with Windows</b><small>Opens in the tray when you sign in, so tags and DMs keep working.</small></div><button class="sw" id="swWin" onclick="toggleWin()"></button></div>
+    <div class="toggle"><div><b>Data folder</b><small id="dataDir">Checkouts, drops, fees and the log. Nothing leaves this PC except what the bot posts.</small></div><button class="btn b-soft b-sm" style="margin-left:auto" onclick="api('/api/open-folder',{})">Open folder</button></div>
+    <div class="toggle"><div><b>Version <span id="verSet" class="num"></span></b><small id="updMsg">Updates are downloaded by hand from GitHub; see Help, section 9.</small></div><button class="btn b-soft b-sm" style="margin-left:auto" onclick="checkUpdate()">Check for updates</button></div>
+    <div class="toggle"><div><b>First-time tour</b><small>A quick walk through every tab.</small></div><button class="btn b-soft b-sm" style="margin-left:auto" onclick="startTour()">Replay tour</button></div>
+  </div></div>
+</section>
+
+<!-- HELP -->
+<section class="view" id="v-help">
+  <div class="head"><div><h1>Help</h1><p>The full guide (GUIDE.md in the program folder). Use the contents to jump around.</p></div>
+    <div class="r"><button class="btn b-fire" onclick="startTour()">Replay tour</button></div></div>
+  <div class="card"><div class="gd" id="guideBody"><div class="empty">Loading the guide…</div></div></div>
+</section>
+</div></main>
+
+<div class="scrim" id="scrim"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+let S=null, view='home', openDrop=null, dropFees={}, dropSum=null, picked=new Set(), seenIds=new Set(), firstLoad=true;
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money=v=>v==null?'—':'$'+(Math.abs(v-Math.round(v))<1e-9?Math.round(v).toLocaleString():(+v).toFixed(2));
+const tm=ts=>new Date(ts*1000).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'});
+const dt=ts=>new Date(ts*1000).toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'});
+const ago=ts=>{const s=Date.now()/1000-ts;return s<60?'just now':s<3600?Math.floor(s/60)+' min ago':s<86400?Math.floor(s/3600)+' h ago':Math.floor(s/86400)+' d ago'};
+const COLS=['#5865f2','#ff8a3d','#34d399','#f472b6','#38bdf8','#fbbf24','#a78bfa','#fb7185','#2dd4bf','#e879f9'];
+const ucol=id=>{let h=0;for(const c of String(id))h=(h*31+c.charCodeAt(0))>>>0;return COLS[h%COLS.length]};
+const at=(id,name)=>id?`<span class="at" style="--uc:${ucol(id)}"><span class="av">${esc((name||'?')[0].toUpperCase())}</span>@${esc(name)}</span>`:`<span class="at none">⚠ Unassigned</span>`;
+const svg=(n,c='i s')=>`<svg class="${c}"><use href="#i-${n}"/></svg>`;
+function toast(t,bad){const e=$('#toast');e.textContent=t;e.className='toast on'+(bad?' bad':'');clearTimeout(e._t);e._t=setTimeout(()=>e.className='toast',2600)}
+async function api(u,b){const r=await fetch(u,b===undefined?{}:{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b)});const j=await r.json().catch(()=>({}));if(!r.ok){toast(j.error||'Something went wrong',true);throw new Error(j.error)}return j}
+function modal(html){$('#modal').innerHTML=html;$('#scrim').classList.add('on')}
+function closeModal(){$('#scrim').classList.remove('on')}
+$('#scrim').onclick=e=>{if(e.target.id==='scrim')closeModal()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
+
+function go(v){view=v;$$('.nav').forEach(n=>n.classList.toggle('on',n.dataset.v===v));$$('.view').forEach(x=>x.classList.toggle('on',x.id==='v-'+v));
+  if(v!=='drops'){openDrop=null;showDropList()} if(v==='setup')loadServers(); render(); history.replaceState(null,'','#'+v)}
+$$('.nav').forEach(n=>n.onclick=()=>go(n.dataset.v));
+
+const STATE={online:['var(--mint)','Online','Tagging checkouts as they come in'],connecting:['var(--sky)','Connecting','Signing in to Discord…'],
+  no_token:['var(--sun)','Not set up','Add your bot token in Setup'],bad_token:['var(--coral)','Token not accepted','Paste the token again in Setup'],
+  intents:['var(--coral)','Needs permissions','Turn on two intents in the Developer Portal'],offline:['var(--tx3)','Offline','Not connected to Discord']};
+
+async function load(){S=await api('/api/state');render();firstLoad=false}
+let rt=null;const es=new EventSource('/api/stream');es.onmessage=()=>{clearTimeout(rt);rt=setTimeout(load,250)};
+es.onerror=()=>{$('#liveDot').style.setProperty('--c','var(--tx3)')};es.onopen=()=>{$('#liveDot').style.setProperty('--c','var(--mint)')};
+
+function render(){if(!S)return;renderSide();renderUpdate();if(view==='help')renderHelp();
+  if(!S.setup.tour_done&&tourAt<0&&!render._toured){render._toured=1;setTimeout(startTour,400)}
+  if(view==='home')renderHome(); if(view==='checkouts')renderCheckouts(); if(view==='needs')renderNeeds();
+  if(view==='drops'){openDrop?refreshDrop():renderDrops()} if(view==='fees')renderFees(); if(view==='setup')renderSetup()}
+
+function renderSide(){const st=S.status,[c,t,d]=STATE[st.state]||STATE.offline;const m=$('#mini');m.style.setProperty('--sc',c);
+  m.querySelector('b').textContent=t+(S.demo?' · demo':'');m.querySelector('small').textContent=st.me?st.me.name:d;
+  const kn=$('#kNeeds');kn.textContent=S.stats.needs;kn.classList.toggle('hot',S.stats.needs>0);
+  const kd=$('#kDrops');kd.textContent=S.stats.open_drops;kd.classList.toggle('hot',S.stats.open_drops>0)}
+
+function renderHome(){const st=S.status,k=S.stats,[c,t,d]=STATE[st.state]||STATE.offline;const h=$('#hero');h.style.setProperty('--hc',c);
+  $('#heroCap').textContent=st.me?`Signed in as ${st.me.name}`:'ACO Forward';
+  const bad=S.health.filter(x=>x.ok===false).length;
+  $('#heroH').innerHTML=st.state==='online'?(bad?`Online, but <em>${bad} channel${bad>1?'s':''}</em> need attention`:`Online and <em>tagging</em>`):`<em>${esc(t)}</em>`;
+  $('#heroP').textContent=st.state==='online'?(st.last_checkout?`Last checkout ${ago(st.last_checkout)}. Watching ${S.setup.sources.length} channel${S.setup.sources.length!==1?'s':''}, ${st.members} members known.`:`Watching ${S.setup.sources.length} channels. The next checkout shows up here.`):(st.error||d);
+  $('#heroActs').innerHTML=st.state==='online'?(S.stats.open_drops?`<button class="btn b-fire big" onclick="go('drops')">${svg('drop','i')}Bill a drop</button>`:'')
+    :`<button class="btn b-tag big" onclick="go('setup')">Open setup</button>`+(S.setup.token_saved?`<button class="btn b-soft big" onclick="api('/api/reconnect',{}).then(()=>toast('Reconnecting…'))">Reconnect</button>`:'');
+  const pr=S.progress,steps=[['token','Add your bot','Make a bot and paste its token'],['online','Bot online','Intents on, signed in'],['channels','Pick channels','Read channels + output'],['checkout','First checkout','Tagged in your output channel'],['sent','First bill sent','Fees set, DMs sent']];
+  const done=steps.filter(s=>pr[s[0]]).length;
+  $('#checklist').innerHTML=done===steps.length?'':`<div class="check"><div class="ch" style="margin:0"><h3>Getting started</h3><span class="r num" style="color:var(--tx2)">${done} of ${steps.length}</span></div><div class="bar"><i style="width:${done/steps.length*100}%"></i></div><div class="steps">${steps.map((s,i)=>`<div class="step ${pr[s[0]]?'done':''}"><div class="t"><span class="dot">${pr[s[0]]?'✓':i+1}</span>${s[1]}</div><p>${s[2]}</p></div>`).join('')}</div></div>`;
+  setN('#tToday',k.today);$('#tTodayS').textContent=`${k.today_units} item${k.today_units!==1?'s':''} · ${k.customers_today} customer${k.customers_today!==1?'s':''}`;
+  setN('#tTagged',k.today?Math.round(k.today_tagged/k.today*100)+'%':'—');$('#tTaggedS').textContent=k.today?`${k.today_tagged} of ${k.today} found their owner`:'No checkouts yet today';
+  setN('#tNeeds',k.needs);$('#tNeedsS').textContent=k.needs?'Wrong or unknown profile names':'All checkouts have an owner';
+  setN('#tOwed',money(k.owed));$('#tOwedS').textContent=k.owing?`${k.owing} customer${k.owing>1?'s':''} still owe`:'Everyone is paid up';
+  const rows=S.rows.slice(0,12);
+  $('#feed').innerHTML=rows.length?rows.map(r=>`<div class="fi ${!firstLoad&&!seenIds.has(r.id)?'new':''}"><span class="t">${tm(r.ts)}</span><div class="p"><b>${esc(r.product_name)}</b><small>${r.qty>1?`qty ${r.qty} · `:''}${esc(r.store||'')} · <span class="num">${esc(r.profile||'no profile')}</span></small></div><div>${r.cancelled?'<span class="pill" style="--c:var(--coral)">Cancelled</span>':at(r.user_id,r.user_name)}</div></div>`).join(''):`<div class="empty"><b>No checkouts yet</b>They appear here the moment a checkout bot posts in a source channel.</div>`;
+  rows.forEach(r=>seenIds.add(r.id));
+  const hl=S.health.map(x=>`<div class="hl"><span class="d" style="background:${x.ok===false?'var(--coral)':x.ok?'var(--mint)':'var(--tx3)'}"></span><span class="nm">${esc(x.name)}${x.problem?`<br><small style="color:var(--coral)">${esc(x.problem)}</small>`:''}</span><span class="pill" style="--c:${x.role==='output'?'var(--tag2)':'var(--sky)'}">${x.role==='output'?'Output':'Read'}</span></div>`);
+  if(S.skipped.length)hl.push(`<div class="hl"><span class="d" style="background:var(--sun)"></span><span class="nm">Skipped senders: ${S.skipped.map(s=>`${esc(s.sender)} (${s.n})`).join(', ')}<br><small style="color:var(--tx3)">Not Valor, Shikari, sniped.gg or Refract. Stellar is added once a test webhook is checked.</small></span></div>`);
+  if(S.posting)hl.push(`<div class="hl"><span class="d" style="background:var(--sky)"></span><span class="nm">Posting tags: <b class="num">${S.posting}</b> waiting${S.status.state!=='online'?' (sends when the bot is back online)':''}</span></div>`);
+  if(S.changed.length)hl.push(`<div class="hl"><span class="d" style="background:var(--sun)"></span><span class="nm">${S.changed.length} bill${S.changed.length>1?'s':''} changed since sent: ${S.changed.map(c=>'@'+esc(c.user_name)).join(', ')}</span><button class="link" onclick="openChanged('${S.changed[0].user_id}')">Send update</button></div>`);
+  if(S.failed_dms.length)hl.push(`<div class="hl"><span class="d" style="background:var(--coral)"></span><span class="nm">${S.failed_dms.length} DM${S.failed_dms.length>1?'s':''} couldn't be sent: ${S.failed_dms.map(f=>'@'+esc(f.user_name)).join(', ')}</span><button class="link" onclick="go('drops')">Fix</button></div>`);
+  $('#health').innerHTML=hl.join('')||`<div class="empty" style="padding:16px"><b>No channels yet</b><button class="link" onclick="go('setup')">Pick them in Setup</button></div>`;
+  const mx=Math.max(1,...k.week),names=[...Array(7)].map((_,i)=>new Date(Date.now()-(6-i)*864e5).toLocaleDateString([], {weekday:'short'}));
+  $('#week').innerHTML=k.week.map((n,i)=>`<div title="${n} checkouts"><small class="num">${n||''}</small><span style="height:${n/mx*70}%"></span><small>${i===6?'Today':names[i]}</small></div>`).join('');
+  $('#weekTot').textContent=k.week.reduce((a,b)=>a+b,0)+' checkouts'}
+function setN(sel,v){const e=$(sel);if(e.textContent!==String(v)){e.textContent=v;if(!firstLoad){e.classList.remove('pop');void e.offsetWidth;e.classList.add('pop')}}}
+
+/* ---------- checkouts (loaded page by page from the app) ---------- */
+let custFilter=null,ckPage=0,ckRows=[],ckTimer=null;const CK_PER=100;
+function dropLabel(d){return `${dt(d.first)} · ${tm(d.first)}–${tm(d.last)}${d.combined?' · combined':''}${d.sent?' · sent':''}`}
+function renderCheckouts(){const sel=$('#fDrop'),cur=sel.value;
+  sel.innerHTML=`<option value="">All drops</option>`+S.drops.map(d=>`<option value="${d.key}">${esc(dropLabel(d))} · ${d.checkouts}</option>`).join('');
+  if([...sel.options].some(o=>o.value===cur))sel.value=cur;else if(!sel._set&&S.drops[0]){sel.value=S.drops[0].key;sel._set=1}
+  clearTimeout(ckTimer);ckTimer=setTimeout(loadCheckouts,120)}
+async function loadCheckouts(){const qs=new URLSearchParams({drop:$('#fDrop').value,status:$('#fStatus').value,q:$('#fText').value.trim(),user:custFilter||'',offset:ckPage*CK_PER,limit:CK_PER});
+  const r=await api('/api/checkouts?'+qs);ckRows=r.rows;
+  const fu=$('#fUser');fu.innerHTML=`<option value="">All customers (${r.people.filter(p=>p.user_id).length})</option>`+r.people.map(p=>`<option value="${p.user_id||'_'}">${p.user_id?'@'+esc(p.user_name):'⚠ Unassigned'} · ${p.n} checkout${p.n!==1?'s':''} · ${p.units} item${p.units!==1?'s':''}</option>`).join('');fu.value=custFilter||'';
+  const how={auto:'From profile name',rule:'Remembered name',manual:'Assigned by you'};
+  $('#ckTable').innerHTML=r.rows.length?`<tr><th>Time</th><th>Customer</th><th>Product</th><th class="r">Qty</th><th>Profile</th><th>Order number</th><th>Store · bot</th><th>Order status</th><th>Tag</th></tr>`+r.rows.map(r=>`<tr class="${r.cancelled?'dim':''}"><td class="num" style="color:var(--tx3);white-space:nowrap">${dt(r.ts)} ${tm(r.ts)}</td><td>${at(r.user_id,r.user_name)}</td><td>${esc(r.product_name)}${r.source==='manual'?' <span class="pill" style="--c:var(--fire)">Added by you</span>':''}</td><td class="r num">${r.qty}</td><td class="num" style="color:var(--tx2)">${esc(r.profile||'—')}</td><td class="num" style="color:var(--tx2);white-space:nowrap">${r.order_number?`${esc(r.order_number)} <button class="link" title="Copy" onclick="navigator.clipboard.writeText('${esc(r.order_number)}').then(()=>toast('Order number copied'))">${svg('copy')}</button>`:'—'}</td><td style="color:var(--tx3)">${esc(r.store||'—')} · ${esc(r.bot)}</td><td style="white-space:nowrap">${statusBtn(r)}</td><td style="color:var(--tx3);font-size:13px">${r.user_id?how[r.how]||'':esc(r.problem||'No member with that username')}</td></tr>`).join(''):`<tr><td><div class="empty"><b>Nothing here</b>No checkouts match these filters.</div></td></tr>`;
+  const a=ckPage*CK_PER;$('#ckPager').innerHTML=r.total>CK_PER?`<span class="num">${a+1}–${Math.min(a+CK_PER,r.total)} of ${r.total.toLocaleString()}</span><button class="btn b-soft b-sm" ${ckPage?'':'disabled'} onclick="ckPage--;loadCheckouts()">Previous</button><button class="btn b-soft b-sm" ${a+CK_PER<r.total?'':'disabled'} onclick="ckPage++;loadCheckouts()">Next</button>`:`<span class="num">${r.total.toLocaleString()} checkout${r.total!==1?'s':''}</span>`}
+function statusBtn(r){return `<button class="stat ${r.cancelled?'off':''}" title="Click to mark as ${r.cancelled?'active':'cancelled'}" onclick="toggleStatus('${r.id}')">${r.cancelled?'Cancelled':'Active'}</button>${r.cancelled&&r.cancel_by?`<small style="display:block;color:var(--tx3);font-size:11.5px;margin-top:2px">by ${esc(r.cancel_by)}</small>`:''}`}
+function toggleStatus(id){const r=ckRows.find(x=>x.id===id)||S.rows.find(x=>x.id===id);if(!r)return;const to=!r.cancelled;
+  const go2=async()=>{closeModal();await api('/api/status',{id,cancelled:to});toast(to?'Marked as cancelled: not charged':'Marked as active again');load()};
+  if(r.billed){modal(`<h3>${to?'Cancel':'Make active'} this order?</h3><p>${esc(r.product_name)} · qty ${r.qty}${r.user_id?' · @'+esc(r.user_name):''}</p><div class="warn">${svg('warn','i')}<div>This drop was already billed. ${r.user_id?'@'+esc(r.user_name)+"'s":'The'} bill for it is worked out again with the fees you used, and their balance changes by the difference. You can then send them an update from the drop page.</div></div><div class="acts"><button class="btn b-soft" onclick="closeModal()">Keep it</button><button class="btn ${to?'b-bad':'b-go'}" id="stGo">${to?'Mark cancelled':'Mark active'}</button></div>`);$('#stGo').onclick=go2}
+  else go2()}
+$('#fDrop').onchange=()=>{custFilter=null;ckPage=0;loadCheckouts()};$('#fStatus').onchange=()=>{ckPage=0;loadCheckouts()};$('#fUser').onchange=()=>{custFilter=$('#fUser').value||null;ckPage=0;loadCheckouts()};$('#fText').oninput=()=>{ckPage=0;clearTimeout(ckTimer);ckTimer=setTimeout(loadCheckouts,250)};
+async function addModal(){const prods=await api('/api/products');const now=new Date(Date.now()-new Date().getTimezoneOffset()*6e4).toISOString().slice(0,16);
+  modal(`<h3>Add a checkout</h3><p>For a checkout the checkout bot never posted. It's tagged, posted and charged like any other.</p>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px"><label class="fld" style="grid-column:1/3">Customer${pickerHtml('pkAdd')}</label>
+  <label class="fld" style="grid-column:1/3">Product<input type="text" id="adProd" list="adProds" placeholder="Start typing a product"><datalist id="adProds">${prods.map(n=>`<option value="${esc(n)}">`).join('')}</datalist></label>
+  <label class="fld">Quantity<input type="number" id="adQty" min="1" max="99" value="1"></label><label class="fld">Order number<input type="text" id="adOrder" placeholder="Optional, prevents doubles"></label>
+  <label class="fld" style="grid-column:1/3">Checkout time<input type="datetime-local" id="adTs" value="${now}" style="background:var(--bg);border:1px solid var(--line2);border-radius:11px;padding:9px 12px;color:inherit"></label></div>
+  <div class="acts"><button class="btn b-soft" onclick="closeModal()">Cancel</button><button class="btn b-fire" id="adGo">Add checkout</button></div>`);
+  $('#pkAdd').style.width='100%';wirePicker('pkAdd');
+  $('#adGo').onclick=async()=>{const pk=$('#pkAdd');if(!pk.dataset.id)return toast('Pick the customer from the list',true);if(!$('#adProd').value.trim())return toast('Enter the product',true);
+    const r=await api('/api/add-checkout',{user_id:pk.dataset.id,user_name:pk.dataset.n,product:$('#adProd').value,qty:$('#adQty').value,order:$('#adOrder').value,ts:new Date($('#adTs').value).getTime()/1000});
+    closeModal();toast(r.late?'Added. Its drop was already sent, so it goes into a new drop':'Checkout added');load()}}
+
+/* ---------- needs assigning ---------- */
+function renderNeeds(){const rows=S.needs_rows;const groups={};
+  rows.forEach(r=>{const k=(r.profile||'(no profile)').toLowerCase();(groups[k]=groups[k]||{profile:r.profile||'(no profile)',problem:r.problem,tag:r.tag,rows:[]}).rows.push(r)});
+  $('#needsBody').innerHTML=Object.keys(groups).length?Object.entries(groups).map(([k,g],gi)=>`<div class="grp"><div class="gh">${svg('warn','i')}<code>${esc(g.profile)}</code><span style="color:var(--sun);font-size:14px">${esc(g.problem||(g.tag?`No member called “${g.tag}” in the bot's servers`:'Not a Discord username'))}</span><span class="r num" style="margin-left:auto;color:var(--tx2)">${g.rows.length} checkout${g.rows.length>1?'s':''}</span></div>
+    <div class="gb"><table class="t"><tr><th style="width:30px"><input type="checkbox" checked onchange="$$('.nk${gi}').forEach(c=>c.checked=this.checked)"></th><th>Time</th><th>Product</th><th class="r">Qty</th><th>Store</th></tr>${g.rows.map(r=>`<tr><td><input type="checkbox" class="nk${gi}" value="${r.id}" checked></td><td class="num" style="color:var(--tx3)">${dt(r.ts)} ${tm(r.ts)}</td><td>${esc(r.product_name)}</td><td class="r num">${r.qty}</td><td style="color:var(--tx3)">${esc(r.store||'')}</td></tr>`).join('')}</table></div>
+    <div class="assign"><span style="color:var(--tx2);font-weight:600">Assign to</span>${pickerHtml('pk'+gi)}<label style="display:flex;gap:8px;align-items:center;color:var(--tx2);font-size:13.5px"><input type="checkbox" id="rm${gi}" checked> Always use this customer for <code style="font-family:var(--mono)">${esc(g.profile)}</code></label><button class="btn b-tag" style="margin-left:auto" onclick="assignGroup(${gi})">${svg('at')}Assign</button></div></div>`).join('')
+    :`<div class="card"><div class="empty"><b>All checkouts have an owner</b>Checkouts whose profile name doesn't match anyone show up here.</div></div>`;
+  Object.keys(groups).forEach((_,gi)=>wirePicker('pk'+gi));
+  $('#rules').innerHTML=S.rules.length?`<table class="t"><tr><th>Profile name</th><th>Customer</th><th></th></tr>${S.rules.map(r=>`<tr><td class="num">${esc(r.profile)}</td><td>${at(r.user_id,r.user_name)}</td><td class="r"><button class="btn b-soft b-sm" onclick="forget('${esc(r.profile)}')">Forget</button></td></tr>`).join('')}</table>`:`<div class="empty" style="padding:14px">None yet. Tick “Always use this customer” when you assign.</div>`}
+function pickerHtml(id){return `<div class="picker" id="${id}"><input type="text" placeholder="Search username" autocomplete="off"><div class="dd" style="display:none"></div></div>`}
+function wirePicker(id){const p=$('#'+id),inp=p.querySelector('input'),dd=p.querySelector('.dd');let t=null;
+  const show=async()=>{const list=await api('/api/members?q='+encodeURIComponent(inp.value));dd.innerHTML=list.length?list.map(m=>`<button data-id="${m.user_id}" data-n="${esc(m.user_name)}">${at(m.user_id,m.user_name)}</button>`).join(''):`<div style="padding:8px;color:var(--tx3)">No member with that username</div>`;dd.style.display='block';
+    dd.querySelectorAll('button').forEach(b=>b.onmousedown=e=>{e.preventDefault();p.dataset.id=b.dataset.id;p.dataset.n=b.dataset.n;inp.value='@'+b.dataset.n;dd.style.display='none'})};
+  inp.onfocus=show;inp.oninput=()=>{p.dataset.id='';clearTimeout(t);t=setTimeout(show,120)};inp.onblur=()=>setTimeout(()=>dd.style.display='none',120)}
+async function assignGroup(gi){const p=$('#pk'+gi);const ids=$$('.nk'+gi).filter(c=>c.checked).map(c=>c.value);
+  if(!p.dataset.id)return toast('Pick a customer from the list first',true);if(!ids.length)return toast('Tick at least one checkout',true);
+  const r=await api('/api/assign',{ids,user_id:p.dataset.id,user_name:p.dataset.n,remember:$('#rm'+gi).checked});toast(`${r.assigned} checkout${r.assigned!==1?'s':''} tagged to @${p.dataset.n}`);load()}
+async function forget(profile){await api('/api/forget-rule',{profile});toast('Forgotten');load()}
+
+/* ---------- drops ---------- */
+function showDropList(){$('#dropsList').style.display='';$('#dropDetail').style.display='none'}
+function openOrder(){return S.drops.filter(d=>!d.sent).sort((a,b)=>a.first-b.first).map(d=>d.key)}
+function canPick(k){if(!picked.size||picked.has(k))return true;const o=openOrder(),ix=[...picked].map(x=>o.indexOf(x)).filter(i=>i>=0),i=o.indexOf(k);
+  return i===Math.min(...ix)-1||i===Math.max(...ix)+1}
+function spanTxt(a,b){const sd=new Date(a*1000).toDateString()===new Date(b*1000).toDateString();return sd?`${tm(a)} – ${tm(b)}`:`${dt(a)}, ${tm(a)} – ${dt(b)}, ${tm(b)}`}
+function renderDrops(){showDropList();const ds=S.drops;
+  $('#drops').innerHTML=ds.length?ds.map(d=>{const st=d.sent?['var(--mint)','Sent']:d.unassigned?['var(--sun)','Needs assigning']:['var(--fire)','Ready for fees'];
+    return `<div class="drop ${picked.has(d.key)?'sel':''}" onclick="openDropView('${d.key}')">${d.sent?'':`<input type="checkbox" class="tick" ${picked.has(d.key)?'checked':''} ${canPick(d.key)?'':'disabled'} onclick="event.stopPropagation();if(!this.disabled)pick('${d.key}',this.checked)" title="${canPick(d.key)?'Select to combine':'Only drops next to each other can be combined'}">`}
+    <div class="top"><span class="pill" style="--c:${st[0]}"><i></i>${st[1]}</span>${d.combined?`<span class="pill" style="--c:var(--pink)">${svg('link')} ${d.parts} combined</span>`:''}</div>
+    <h3 style="margin-top:10px">${dt(d.first)}${new Date(d.first*1000).toDateString()!==new Date(d.last*1000).toDateString()?' – '+dt(d.last):''}</h3><div class="when num">${d.combined?'':spanTxt(d.first,d.last)}${d.stores.length?(d.combined?'':' · ')+esc(d.stores.join(', ')):''}</div>
+    ${d.combined?`<div class="parts num">${d.spans.map((p,i)=>`Part ${i+1}: ${dt(p[0])}, ${spanTxt(p[0],p[1])}`).join('<br>')}</div>`:''}
+    <div class="nums"><div><b class="num">${d.checkouts}</b><small>checkouts</small></div><div><b class="num">${d.units}</b><small>items</small></div><div><b class="num">${d.customers}</b><small>customers</small></div></div>
+    <div class="foot">${d.unassigned?`<span style="color:var(--sun)">⚠ ${d.unassigned} unassigned</span>`:''}${d.cancelled?`<span>${d.cancelled} cancelled (not billed)</span>`:''}${d.sent?`<span>Sent ${ago(d.sent_at)}</span>`:''}${d.combined&&!d.sent?`<button class="link" style="margin-left:auto" onclick="event.stopPropagation();uncombine('${d.key}')">Undo combine</button>`:''}</div></div>`}).join('')
+    :`<div class="card"><div class="empty"><b>No drops yet</b>A drop starts with the first checkout and ends after 90 quiet minutes.</div></div>`;
+  [...picked].forEach(k=>{if(!ds.some(d=>d.key===k&&!d.sent))picked.delete(k)});
+  $('#combineBtn').disabled=picked.size<2;$('#combineBtn').innerHTML=`${svg('link')}Combine ${picked.size>=2?picked.size+' drops':'selected'}`}
+function pick(k,on){if(on)picked.add(k);else{picked.delete(k);const o=openOrder(),ix=[...picked].map(x=>o.indexOf(x)).sort((a,b)=>a-b);
+  if(ix.some((v,i)=>i&&v!==ix[i-1]+1))picked.clear()}renderDrops()}
+async function combine(){const keys=[...picked];await api('/api/combine',{keys});picked.clear();toast(`${keys.length} drops combined into one`);load()}
+async function uncombine(key){await api('/api/uncombine',{key});toast('Split back into separate drops');load()}
+
+async function openDropView(key){openDrop=key;cuQ='';cuF='all';cuPage=0;cuSel=null;dropFees={};const s=await api('/api/summary',{key,fees:{}});
+  s.products.forEach(p=>{dropFees[p.key]=p.fee!=null?p.fee:''});dropSum=s;$('#dropsList').style.display='none';$('#dropDetail').style.display='';drawDrop();main.scrollTop=0}
+const main=document.querySelector('main');
+async function refreshDrop(){if(!S.drops.some(d=>d.key===openDrop)){openDrop=null;return renderDrops()}dropSum=await api('/api/summary',{key:openDrop,fees:dropFees});drawDrop()}
+let feeT=null;function setFee(k,v){dropFees[k]=v;clearTimeout(feeT);feeT=setTimeout(async()=>{dropSum=await api('/api/summary',{key:openDrop,fees:dropFees});drawDrop(true)},220)}
+function useLast(){dropSum.products.forEach(p=>{if(p.last_fee!=null&&(dropFees[p.key]===''||dropFees[p.key]==null))dropFees[p.key]=p.last_fee});refreshDrop()}
+function drawDrop(keepFocus){const s=dropSum,d=S.drops.find(x=>x.key===s.key)||{};const sent=s.sent;
+  const foc=keepFocus&&document.activeElement&&document.activeElement.dataset.k;const pos=foc&&document.activeElement.selectionStart;
+  const feesOk=s.products.every(p=>p.fee!=null),assignOk=!s.blockers.some(b=>b.startsWith('Assign'));
+  const hasLast=s.products.some(p=>p.last_fee!=null&&(dropFees[p.key]===''||dropFees[p.key]==null));
+  $('#dropDetail').innerHTML=`<button class="back" onclick="openDrop=null;renderDrops()">${svg('back')}All drops</button>
+  <div class="head"><div><h1>${d.first?dt(d.first):'Drop'} drop</h1><p class="num">${d.first?`${tm(d.first)} – ${tm(d.last)}`:''} · ${s.rows.length} checkouts${d.combined?` · ${d.parts} drops combined`:''}${sent?` · sent ${ago(s.sent_at)}`:''}</p></div>
+  <div class="r">${sent?(s.customers.some(c=>c.status==='failed')?`<button class="btn b-warn" onclick="retry()">${svg('refresh')}Retry failed DMs</button>`:''):`<button class="btn b-fire big" ${s.blockers.length?'disabled':''} onclick="confirmSend()">${svg('send','i')}Send ${s.customers.length} summar${s.customers.length===1?'y':'ies'}</button>`}</div></div>
+  ${sent?'':`<div class="stepper"><div class="${assignOk?'done':'on'}"><span>${assignOk?'✓':'1'}</span>Every checkout has an owner</div><div class="${feesOk?'done':assignOk?'on':''}"><span>${feesOk?'✓':'2'}</span>Set a fee per product</div><div class="${s.blockers.length?'':'on'}"><span>3</span>Preview and send</div></div>`}
+  ${!sent&&s.blockers.length?`<div class="warn" style="margin-bottom:16px">${svg('warn','i')}<div><b>Before you can send:</b> ${s.blockers.map(esc).join(' · ')}${s.blockers.some(b=>b.startsWith('Assign'))?` · <button class="link" onclick="go('needs')">Assign them</button>`:''}</div></div>`:''}
+  ${sent?`<div class="warn ok" style="margin-bottom:16px">${svg('check','i')}<div>Billed and locked. ${s.customers.filter(c=>c.status==='sent').length} of ${s.customers.length} DMs delivered${s.customers.some(c=>c.status==='pending')?', sending the rest…':''}. Cancel or re-activate orders on the Checkouts page; changed bills show below with Send update.</div></div>`:''}
+  ${sent&&s.customers.some(c=>c.changed)?`<div class="warn" style="margin-bottom:16px">${svg('warn','i')}<div><b>${s.customers.filter(c=>c.changed).length} bill${s.customers.filter(c=>c.changed).length>1?'s':''} changed since sent.</b> Check the update below and send it to each person.</div></div>`:''}
+  <div class="card" style="margin-bottom:16px"><div class="ch"><h3>Fees per product</h3>${!sent&&hasLast?`<button class="btn b-soft b-sm r" onclick="useLast()">Use last fees</button>`:''}</div>
+  <table class="t"><tr><th>Product</th><th>Store</th><th class="r">Checkouts</th><th class="r">Items</th><th class="r">Fee per item</th><th class="r">Subtotal</th></tr>
+  ${s.products.map(p=>`<tr><td><b style="font-weight:600">${esc(p.name)}</b></td><td style="color:var(--tx3)">${esc(p.store||'')}</td><td class="r num">${p.checkouts}</td><td class="r num">${p.units}</td>
+  <td class="r">${sent?`<span class="num">${money(p.fee)}</span>`:`<div class="fee"><span class="cur">$</span><input type="number" min="0" step="0.5" data-k="${esc(p.key)}" class="${p.fee==null?'miss':''}" value="${dropFees[p.key]??''}" placeholder="${p.last_fee!=null?'last '+p.last_fee:'0'}" oninput="setFee(this.dataset.k,this.value)"></div>`}</td>
+  <td class="r num" style="font-weight:700">${p.fee==null?'<span style="color:var(--tx3)">—</span>':money(p.fee*p.units)}</td></tr>`).join('')}
+  <tr><td colspan="5" class="r" style="color:var(--tx2);font-weight:700">Total for this drop</td><td class="r num" style="font:800 18px var(--mono);color:var(--fire2)">${feesOk?money(s.grand_total):'—'}</td></tr></table></div>
+  ${sent?'':`<div class="warn" style="margin-bottom:16px">${svg('warn','i')}<div style="flex:1">Missing any checkouts (a checkout bot's webhook that never arrived)? Add them before sending: once a drop is sent, late ones go into a new drop.</div><button class="btn b-soft b-sm" onclick="addModal()">+ Add checkout</button></div>`}
+  <div class="ch"><h3>${sent?'Messages':'Preview: what each customer gets'}</h3><small style="color:var(--tx3)">${s.customers.length} customer${s.customers.length!==1?'s':''}. Customers with no checkouts get nothing.</small></div>
+  <div id="custBox"></div>`;
+  drawCustomers();
+  if(foc){const e=$(`input[data-k="${CSS.escape(foc)}"]`);if(e){e.focus();try{e.setSelectionRange(pos,pos)}catch(_){}}}}
+let cuQ='',cuF='all',cuSort='name',cuPage=0,cuSel=null;const CU_PER=50;
+function custList(){const s=dropSum;let L=s.customers;const q=cuQ.trim().toLowerCase().replace(/^@/,'');
+  if(q)L=L.filter(c=>(c.user_name||'').toLowerCase().includes(q));
+  if(cuF==='failed')L=L.filter(c=>c.status==='failed');if(cuF==='changed')L=L.filter(c=>c.changed);if(cuF==='pending')L=L.filter(c=>c.status==='pending');
+  const units=c=>c.lines.reduce((a,l)=>a+l.units,0);
+  return [...L].sort(cuSort==='total'?(a,b)=>(b.total||0)-(a.total||0):cuSort==='items'?(a,b)=>units(b)-units(a):(a,b)=>(a.user_name||'').localeCompare(b.user_name||''))}
+function drawCustomers(){const box=$('#custBox');if(!box)return;const s=dropSum;
+  if(!s.customers.length){box.innerHTML='<div class="card"><div class="empty">No customers yet.</div></div>';return}
+  const L=custList(),pages=Math.max(1,Math.ceil(L.length/CU_PER));cuPage=Math.min(cuPage,pages-1);const view=L.slice(cuPage*CU_PER,cuPage*CU_PER+CU_PER);
+  if(!cuSel||!s.customers.some(c=>c.user_id===cuSel))cuSel=(view[0]||s.customers[0]).user_id;
+  const sel=s.customers.find(c=>c.user_id===cuSel);const n=k=>s.customers.filter(c=>k==='failed'?c.status==='failed':k==='changed'?c.changed:c.status==='pending').length;
+  const done=s.customers.filter(c=>c.status==='sent').length,tot=s.customers.length;
+  const ST={sent:['var(--mint)','Delivered'],pending:['var(--sky)','Sending'],failed:['var(--coral)','Not delivered']};
+  box.innerHTML=`${s.sent?`<div class="card" style="margin-bottom:14px;display:flex;gap:14px;align-items:center;padding:14px 18px"><b>DMs</b><div class="prog"><i style="width:${tot?done/tot*100:0}%"></i></div><span class="num">${done} / ${tot} delivered</span>${n('failed')?`<button class="btn b-warn b-sm" onclick="retry()">${svg('refresh')}Retry ${n('failed')} failed</button>`:''}</div>`:''}
+  <div class="split"><div class="card" style="padding:14px 16px">
+    <div class="filters" style="margin-bottom:10px"><input type="text" id="cuQ" placeholder="Search customer" value="${esc(cuQ)}" style="flex:1;min-width:160px">
+    ${[['all','All '+tot],...(s.sent?[['failed','Not delivered '+n('failed')],['changed','Changed '+n('changed')],['pending','Sending '+n('pending')]]:[])].map(([k,l])=>`<button class="fchip ${cuF===k?'on':''}" onclick="cuF='${k}';cuPage=0;drawCustomers()">${l}</button>`).join('')}</div>
+    <table class="t"><tr><th style="cursor:pointer" onclick="cuSort='name';drawCustomers()">Customer${cuSort==='name'?' ↓':''}</th><th class="r" style="cursor:pointer" onclick="cuSort='items';drawCustomers()">Items${cuSort==='items'?' ↓':''}</th><th class="r" style="cursor:pointer" onclick="cuSort='total';drawCustomers()">Total${cuSort==='total'?' ↓':''}</th><th>${s.sent?'Status':''}</th></tr>
+    ${view.map(c=>`<tr class="pick ${c.user_id===cuSel?'on':''}" onclick='cuSel=${JSON.stringify(c.user_id)};drawCustomers()'><td>${at(c.user_id,c.user_name)}</td><td class="r num">${c.lines.reduce((a,l)=>a+l.units,0)}</td><td class="r num" style="font-weight:700">${money(c.total)}</td><td>${c.changed?'<span class="pill" style="--c:var(--sun)">Changed</span>':c.status?`<span class="pill" style="--c:${ST[c.status][0]}">${ST[c.status][1]}</span>`:''}</td></tr>`).join('')||'<tr><td colspan="4"><div class="empty">No customers match.</div></td></tr>'}</table>
+    <div class="pager"><span class="num">${L.length?cuPage*CU_PER+1:0}–${Math.min((cuPage+1)*CU_PER,L.length)} of ${L.length}</span><button class="btn b-soft b-sm" ${cuPage?'':'disabled'} onclick="cuPage--;drawCustomers()">Previous</button><button class="btn b-soft b-sm" ${cuPage<pages-1?'':'disabled'} onclick="cuPage++;drawCustomers()">Next</button></div></div>
+    <div class="side">${sel?dmCard(sel):''}</div></div>`;
+  const qi=$('#cuQ');qi.oninput=()=>{cuQ=qi.value;cuPage=0;const p=qi.selectionStart;drawCustomers();const n2=$('#cuQ');n2.focus();n2.setSelectionRange(p,p)}}
+function nameOf(id){const r=S.rows.find(x=>x.user_id===id)||ckRows.find(x=>x.user_id===id)||S.balances.find(x=>x.user_id===id)||(dropSum&&dropSum.customers.find(x=>x.user_id===id));return r?r.user_name:'user'}
+function md(t){return esc(t).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/~~(.+?)~~/g,'<s>$1</s>').replace(/&lt;@(\d+)&gt;/g,(m,id)=>`<span class="men">@${esc(nameOf(id))}</span>`).replace(/\n/g,'<br>')}
+function plain(t){return String(t||'').replace(/\*\*|~~/g,'').replace(/<@(\d+)>/g,(m,id)=>'@'+nameOf(id))}
+function msgText(m){return [m.content,'',m.title,plain(m.description),...m.fields.map(f=>f.name+': '+f.value),'',m.footer].map(plain).join('\n')}
+function msgHtml(m,label){const me=S.status.me||{name:'Your bot'};
+  return `<div class="dc"><div class="row"><div class="bav" ${me.avatar?`style="background-image:url('${esc(me.avatar)}')"`:''}>${me.avatar?'':esc(me.name[0])}</div><div style="min-width:0;flex:1">
+  <div><span class="nm">${esc(me.name)}</span><span class="app">APP</span><span class="tm">${esc(label)}</span></div><div>${md(m.content)}</div>
+  <div class="em" style="--ec:#${m.color.toString(16).padStart(6,'0')}"><div class="et" style="font-size:19px">${md(m.title)}</div><div class="md">${md(m.description)}</div>
+  ${m.fields.map(f=>`<div class="fl"><b>${esc(f.name)}</b>${md(f.value)}</div>`).join('')}<div class="ef">${esc(m.footer)}</div></div></div></div></div>`}
+function dmCard(c){if(!c.msg)return `<div class="card"><div class="ch">${at(c.user_id,c.user_name)}</div><div class="empty" style="padding:14px">Set every fee to see this message.</div></div>`;
+  const st=c.status?{sent:['var(--mint)',c.kind==='update'?'Update delivered':'Delivered'],pending:['var(--sky)',c.kind==='update'?'Sending update…':'Sending…'],failed:['var(--coral)','Not delivered']}[c.status]:null;
+  return `<div>${c.changed?`<div class="warn" style="margin-bottom:8px">${svg('warn','i')}<div style="flex:1">Changed since sent: <span class="num">${money(c.sent_total)} → ${money(c.total)}</span>. Preview of the update:</div><button class="btn b-warn b-sm" onclick='sendUpdate(${JSON.stringify(c.user_id)})'>${svg('send')}Send update</button></div>`:''}
+  ${msgHtml(c.msg,'DM to @'+c.user_name)}
+  ${st?`<div class="dmstat"><span class="pill" style="--c:${st[0]}"><i></i>${st[1]}</span>${c.error?`<span style="color:var(--tx3)">${esc(c.error)}</span>`:''}${c.status==='failed'||c.changed?`<button class="link" style="margin-left:auto" onclick='copyDm(${JSON.stringify(c.user_id)})'>${svg('copy')} Copy text</button>`:''}</div>`:''}</div>`}
+function copyDm(uid){const c=dropSum.customers.find(x=>x.user_id===uid);navigator.clipboard.writeText(msgText(c.msg)).then(()=>toast('Message copied: paste it to them yourself'))}
+async function sendUpdate(uid){await api('/api/update',{key:openDrop,user_id:uid});toast('Sending the update…');load()}
+function confirmSend(){const s=dropSum;modal(`<h3>Send ${s.customers.length} summaries?</h3><p>Each customer gets a DM with their checkouts and fees (about ${Math.max(1,Math.ceil(s.customers.length*1.2/60))} min for all of them; it keeps going in the background), and the amounts are added to what they owe. The drop is then locked: it can't be combined or changed, and nobody can be billed for it twice.</p>
+  <div class="card" style="padding:12px 16px;max-height:40vh;overflow:auto">${s.customers.map(c=>`<div class="hl">${at(c.user_id,c.user_name)}<span class="r num" style="margin-left:auto;font-weight:700">${money(c.total)}</span></div>`).join('')}<div class="hl"><b>Total</b><span class="num" style="margin-left:auto;font:800 17px var(--mono);color:var(--fire2)">${money(s.grand_total)}</span></div></div>
+  ${S.status.state!=='online'?`<div class="warn" style="margin-top:12px">${svg('warn','i')}<div>The bot is offline. The bill is saved now and the DMs go out as soon as it's back online.</div></div>`:''}
+  <div class="acts"><button class="btn b-soft" onclick="closeModal()">Cancel</button><button class="btn b-fire" onclick="doSend()">${svg('send')}Send now</button></div>`)}
+async function doSend(){closeModal();const s=await api('/api/send',{key:openDrop,fees:dropFees});dropSum=s;drawDrop();toast('Billed. Sending DMs…');boom();load()}
+async function retry(){await api('/api/retry',{key:openDrop});toast('Trying again…');load()}
+function boom(){const c=['#ff8a3d','#5865f2','#34d399','#fbbf24','#f472b6'];for(let i=0;i<70;i++){const e=document.createElement('i');e.style.cssText=`position:fixed;left:50%;top:40%;width:8px;height:12px;background:${c[i%5]};z-index:70;border-radius:2px;pointer-events:none`;document.body.appendChild(e);
+  const a=Math.random()*Math.PI*2,v=6+Math.random()*9;e.animate([{transform:'translate(0,0) rotate(0)',opacity:1},{transform:`translate(${Math.cos(a)*v*40}px,${Math.sin(a)*v*30+260}px) rotate(${Math.random()*720}deg)`,opacity:0}],{duration:1300+Math.random()*600,easing:'cubic-bezier(.2,.7,.4,1)'}).onfinish=()=>e.remove()}}
+
+/* ---------- fees ---------- */
+function renderFees(){const b=S.balances;const owed=b.reduce((a,x)=>a+Math.max(0,x.owed||0),0),billed=b.reduce((a,x)=>a+(x.charged||0),0),paid=b.reduce((a,x)=>a+(x.paid||0),0);
+  $('#fOwed').textContent=money(Math.round(owed*100)/100);$('#fOwedS').textContent=`${b.filter(x=>x.owed>0.004).length} customer${b.filter(x=>x.owed>0.004).length!==1?'s':''} owe`;
+  $('#fBilled').textContent=money(Math.round(billed*100)/100);$('#fBilledS').textContent=`${S.drops.filter(d=>d.sent).length} drop${S.drops.filter(d=>d.sent).length!==1?'s':''} billed`;$('#fPaid').textContent=money(Math.round(paid*100)/100);
+  $('#ledger').innerHTML=b.length?`<tr><th>Customer</th><th class="r">Owed</th><th class="r">Billed</th><th class="r">Paid</th><th class="r">Drops</th><th>Last activity</th><th></th></tr>`+b.map(x=>`<tr><td>${at(x.user_id,x.user_name)}${x.overdue?' <span class="pill" style="--c:var(--coral)">Overdue</span>':''}${S.changed.some(c=>c.user_id===x.user_id)?` <button class="pill" style="--c:var(--sun);border:0" onclick="openChanged('${x.user_id}')">Update not sent</button>`:''}${x.reminded?`<small style="display:block;color:var(--tx3);margin-top:3px">Reminded ${ago(x.reminded)}</small>`:''}</td><td class="r"><span class="owed ${x.owed<=0.004?'paid0':''}">${x.owed<-0.004?'Credit '+money(-x.owed):x.owed<=0.004?'Paid up':money(x.owed)}</span></td><td class="r num">${money(x.charged)}</td><td class="r num">${money(x.paid)}</td><td class="r num">${x.drops}</td><td style="color:var(--tx3)">${ago(x.last_ts)}</td>
+    <td class="r" style="white-space:nowrap"><button class="btn b-soft b-sm" onclick='hist(${JSON.stringify(x.user_id)},${JSON.stringify(x.user_name)})'>History</button> ${x.owed>0.004?`<button class="btn b-warn b-sm" onclick='remindModal(${JSON.stringify(x.user_id)})'>Remind</button> <button class="btn b-go b-sm" onclick='payModal(${JSON.stringify(x.user_id)},${JSON.stringify(x.user_name)},${x.owed})'>Mark paid</button>`:''}</td></tr>`).join('')
+    :`<tr><td><div class="empty"><b>No bills yet</b>Send a drop summary and each customer's balance starts here.</div></td></tr>`}
+function payModal(id,name,owed){modal(`<h3>Payment from @${esc(name)}</h3><p>They owe <b class="num">${money(owed)}</b>. Record the full amount, or type what they paid.</p>
+  <div style="display:flex;gap:10px"><div class="fee" style="justify-content:flex-start"><span class="cur">$</span><input type="number" id="payAmt" min="0" step="0.01" value="${owed}" style="width:130px"></div><input type="text" id="payNote" placeholder="Note, like PayPal or Cash App" style="flex:1"></div>
+  <div class="acts"><button class="btn b-soft" onclick="closeModal()">Cancel</button><button class="btn b-go" onclick='pay(${JSON.stringify(id)})'>${svg('check')}Record payment</button></div>`);setTimeout(()=>$('#payAmt').select(),50)}
+async function pay(id){const v=$('#payAmt').value;if(!(+v>0))return toast('Enter an amount above $0',true);const r=await api('/api/pay',{user_id:id,amount:v,note:$('#payNote').value});closeModal();toast(`${money(r.paid)} recorded`);load()}
+function openChanged(uid){const c=S.changed.find(x=>x.user_id===uid);if(!c)return;go('drops');openDropView(c.bill)}
+async function remindModal(id){const r=await api('/api/reminder?user_id='+encodeURIComponent(id));
+  modal(`<h3>Remind @${esc(r.user_name)}?</h3><p>They get this DM now.${r.last_reminded?` Last reminder: ${ago(r.last_reminded)}.`:''}</p>${msgHtml(r.msg,'DM to @'+r.user_name)}
+  <div class="acts"><button class="btn b-soft" onclick="closeModal()">Cancel</button><button class="btn b-warn" id="remGo">${svg('send')}Send reminder</button></div>`);
+  $('#remGo').onclick=async()=>{await api('/api/remind',{user_id:id});closeModal();toast('Reminder sent to @'+r.user_name);load()}}
+const KIND={charge:['var(--fire)','Bill',''],adjust:['var(--sun)','Change',''],payment:['var(--mint)','Paid','−']};
+async function hist(id,name){const h=await api('/api/history?user_id='+encodeURIComponent(id));modal(`<h3>@${esc(name)}</h3><p>Bills, changes and payments, newest first.</p><div style="max-height:50vh;overflow:auto">${h.map(e=>`<div class="hl"><span class="pill" style="--c:${KIND[e.kind][0]}">${KIND[e.kind][1]}</span><span class="nm" style="color:var(--tx2)">${dt(e.ts)}${e.note?' · '+esc(e.note):''}</span><b class="num">${e.kind==='payment'?'−':e.amount<0?'−':''}${money(Math.abs(e.amount))}</b>${e.kind==='payment'?`<button class="link" onclick="undoPay(${e.id},'${esc(id)}','${esc(name)}')">Undo</button>`:''}</div>`).join('')}</div><div class="acts"><button class="btn b-soft" onclick="closeModal()">Close</button></div>`)}
+async function undoPay(eid,id,name){await api('/api/undo-pay',{id:eid});toast('Payment removed');await load();hist(id,name)}
+
+/* ---------- setup ---------- */
+let servers=[],chanSel=null;
+function renderSetup(){const st=S.status,[c,t,d]=STATE[st.state]||STATE.offline;
+  $('#botPill').innerHTML=`<span class="pill" style="--c:${c}"><i></i>${t}</span>`;$('#s1').classList.toggle('done',st.state==='online');$('#s2').classList.toggle('done',!!(S.setup.sources.length&&S.setup.output));
+  $('#swWin').classList.toggle('on',S.setup.start_with_windows);
+  if(document.activeElement!==$('#payNoteIn')&&document.activeElement!==$('#dueIn')){$('#payNoteIn').value=S.setup.pay_note||'';$('#dueIn').value=S.setup.due_days}
+  if($('#botBody').contains(document.activeElement))return;
+  $('#botBody').innerHTML=`${st.error?`<div class="warn bad" style="margin-bottom:12px">${svg('warn','i')}<div>${esc(st.error)}</div></div>`:''}
+  ${st.state==='online'?`<div class="warn ok" style="margin-bottom:12px">${svg('check','i')}<div>Signed in as <b>${esc(st.me.name)}</b> · ${st.members} members found in its servers.</div></div>`:''}
+  <details ${S.setup.token_saved?'':'open'}><summary style="cursor:pointer;color:var(--tag2);font-weight:650">How to make the bot (5 minutes)</summary><ol class="guide">
+  <li>Open <b>discord.com/developers/applications</b> → <b>New Application</b> → name it (for example “My ACO”).</li>
+  <li><b>Bot</b> page: turn on <b>Message Content Intent</b> and <b>Server Members Intent</b> → Save. The second one lets the bot find customers by username.</li>
+  <li><b>Bot</b> page → <b>Reset Token</b> → copy it and paste it below.</li>
+  <li><b>OAuth2 → URL Generator</b>: tick <b>bot</b>, then <b>View Channels</b>, <b>Read Message History</b>, <b>Send Messages</b>, <b>Embed Links</b>. Open the link and add the bot to <b>every</b> server you use: where the checkouts post, and where the tags go.</li>
+  <li>Customers get their summary as a DM, so they need to share a server with the bot and allow DMs from server members.</li></ol>
+  <button class="link" style="margin-top:6px" onclick="openGuide('2-make-your-discord-bot')">Full step-by-step bot guide →</button></details>
+  <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap"><input type="password" id="tok" placeholder="${S.setup.token_saved?'Token saved. Paste a new one to replace it':'Paste your bot token'}" style="flex:1;min-width:280px" autocomplete="off">
+  <button class="btn b-tag" onclick="saveToken()">${S.setup.token_saved?'Replace token':'Save and connect'}</button>${S.setup.token_saved?`<button class="btn b-soft" onclick="api('/api/reconnect',{}).then(()=>toast('Reconnecting…'))">${svg('refresh')}Reconnect</button><button class="btn b-bad" onclick="clearToken()">Remove</button>`:''}</div>
+  <small style="color:var(--tx3);display:block;margin-top:8px">The token is encrypted for your Windows account and never shown again.</small>`;
+  if(st.state==='online'&&!servers.length&&!loadServers._busy)loadServers();
+  drawServers()}
+async function saveToken(){const t=$('#tok').value.trim();if(!t)return toast('Paste the token first',true);await api('/api/token',{token:t});$('#tok').value='';toast('Saved. Connecting…');load()}
+async function clearToken(){modal(`<h3>Remove the bot token?</h3><p>The bot goes offline: no tags or DMs until you add a token again. Your checkouts and fees stay.</p><div class="acts"><button class="btn b-soft" onclick="closeModal()">Cancel</button><button class="btn b-bad" onclick="api('/api/token/clear',{}).then(()=>{closeModal();load()})">Remove token</button></div>`)}
+async function loadServers(){if(S&&S.status.state!=='online'){servers=[];return drawServers()}loadServers._busy=1;try{servers=await api('/api/servers')}finally{loadServers._busy=0}
+  chanSel={sources:new Set(S.setup.sources),output:S.setup.output};drawServers()}
+function drawServers(){const el=$('#servers');if(!el)return;if(!S||S.status.state!=='online'){el.innerHTML=`<div class="empty" style="padding:18px"><b>Connect the bot first</b>Its servers and channels show up here.</div>`;return}
+  if(!chanSel)chanSel={sources:new Set(S.setup.sources),output:S.setup.output};
+  el.innerHTML=servers.length?servers.map(g=>`<div class="srv"><div class="sh"><span class="gi" ${g.icon?`style="background-image:url('${esc(g.icon)}')"`:''}>${g.icon?'':esc(g.name[0])}</span>${esc(g.name)}<small style="color:var(--tx3);font-weight:400">${g.members} members</small>
+    <span style="margin-left:auto;font-size:12px;color:var(--tx3);display:grid;grid-template-columns:120px 120px;gap:10px"><span>Read checkouts</span><span>Post tags here</span></span></div>
+    ${g.channels.map(c=>`<div class="chn"><span class="cn"><b>#${esc(c.name)}</b>${c.category?`<small>${esc(c.category)}</small>`:''}</span>
+    ${c.read?`<label><input type="checkbox" ${chanSel.sources.has(c.id)?'checked':''} onchange="chanSel.sources[this.checked?'add':'delete']('${c.id}');if(this.checked&&chanSel.output==='${c.id}')chanSel.output=null;drawServers()">Read</label>`:`<span class="noacc" title="The bot needs View Channel and Read Message History here">No access</span>`}
+    ${c.post?`<label><input type="radio" name="outp" ${chanSel.output===c.id?'checked':''} onchange="chanSel.output='${c.id}';chanSel.sources.delete('${c.id}');drawServers()">Output</label>`:`<span class="noacc" title="The bot needs Send Messages and Embed Links here">Can't post</span>`}</div>`).join('')}</div>`).join('')
+    :`<div class="empty" style="padding:18px"><b>The bot isn't in any server yet</b>Use the invite link from step 4 of the guide above.</div>`;
+  $('#chanMsg').textContent=`${chanSel.sources.size} read channel${chanSel.sources.size!==1?'s':''} · ${chanSel.output?'output picked':'no output channel yet'}`}
+async function saveChannels(){if(!chanSel)return;if(!chanSel.sources.size)return toast('Tick at least one channel to read',true);if(!chanSel.output)return toast('Pick an output channel',true);
+  const names={};servers.forEach(g=>g.channels.forEach(c=>{if(chanSel.sources.has(c.id)||chanSel.output===c.id)names[c.id]=`${g.name} › #${c.name}`}));
+  await api('/api/channels',{sources:[...chanSel.sources],output:chanSel.output,names});toast('Channels saved');load()}
+async function testPost(){const r=await api('/api/test-post',{});toast(r.result)}
+async function saveFeeMsg(){await api('/api/config',{pay_note:$('#payNoteIn').value,due_days:$('#dueIn').value||0});toast('Fee message settings saved');load()}
+async function toggleWin(){await api('/api/config',{start_with_windows:!S.setup.start_with_windows});load()}
+function copyGuide(){navigator.clipboard.writeText($('#guide').innerText).then(()=>toast('Guideline copied'))}
+
+/* ---------- version + update banner ---------- */
+function renderUpdate(){$('#ver').textContent='v'+S.version;$('#verSet').textContent=S.version;$('#dataDir').textContent=S.data_dir;
+  const u=S.update;$('#updBar').innerHTML=u?`<div class="ubar">${svg('refresh','i')}<div style="flex:1"><b>Version ${esc(u.version)} is out</b> <span style="color:var(--tx3)">(you have ${esc(S.version)})</span>${u.notes.length?`<ul>${u.notes.map(n=>`<li>${esc(n)}</li>`).join('')}</ul>`:''}</div>
+  ${u.url?`<button class="btn b-tag b-sm" onclick="api('/api/open-release',{}).then(()=>toast('Opened in your browser'))">Download</button>`:''}<button class="btn b-soft b-sm" onclick="openGuide('9-updating-to-a-new-version')">How to update</button><button class="link" onclick='api("/api/dismiss-update",{version:${JSON.stringify(u.version)}}).then(load)'>Later</button></div>`:''}
+async function checkUpdate(){$('#updMsg').textContent='Checking…';const r=await api('/api/check-update',{});
+  $('#updMsg').textContent=!r.configured?'Update check isn’t set up in this copy yet.':!r.latest?'Couldn’t reach the update file (offline?). Try again later.':r.newer?`Version ${r.latest.version} is out: see the banner at the top.`:`You have the newest version (${r.current}).`;load()}
+
+/* ---------- help: GUIDE.md rendered here ---------- */
+let guideMd=null;
+function slug(t){return t.toLowerCase().replace(/<[^>]+>/g,'').replace(/[^a-z0-9 -]/g,'').trim().replace(/ +/g,'-')}
+function inl(t){return esc(t).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\(([^)\s]+)\)/g,'<a href="$2">$1</a>').replace(/(^|[\s(])(https:\/\/[^\s<)]+)/g,'$1<a href="$2">$2</a>')}
+function mdToHtml(src){const L=src.replace(/\r/g,'').split('\n');let h='',i=0;
+  const listAt=l=>l.match(/^(\s*)([-*]|\d+\.)\s+(.*)$/);
+  function list(base){const m0=listAt(L[i]);const ord=/\d/.test(m0[2]);let out=ord?'<ol>':'<ul>';
+    while(i<L.length){const m=listAt(L[i]);if(!m){if(L[i].trim()===''&&i+1<L.length&&listAt(L[i+1])&&listAt(L[i+1])[1].length>=base){i++;continue}
+        if(L[i].match(/^\s+\S/)&&L[i].search(/\S/)>base){out=out.replace(/<\/li>$/,'')+' '+inl(L[i].trim())+'</li>';i++;continue}break}
+      const ind=m[1].length;if(ind<base)break;if(ind>base){out=out.replace(/<\/li>$/,'')+list(ind)+'</li>';continue}
+      out+='<li>'+inl(m[3])+'</li>';i++}
+    return out+(ord?'</ol>':'</ul>')}
+  while(i<L.length){const l=L[i];
+    if(l.startsWith('```')){let c='';i++;while(i<L.length&&!L[i].startsWith('```'))c+=esc(L[i++])+'\n';i++;h+=`<pre><code>${c}</code></pre>`;continue}
+    const hm=l.match(/^(#{1,4})\s+(.*)$/);if(hm){const n=hm[1].length;h+=`<h${n} id="${slug(hm[2])}">${inl(hm[2])}</h${n}>`;i++;continue}
+    if(/^---+\s*$/.test(l)){h+='<hr>';i++;continue}
+    if(l.startsWith('|')){const rows=[];while(i<L.length&&L[i].startsWith('|'))rows.push(L[i++]);const cells=r=>r.replace(/^\||\|$/g,'').split('|').map(c=>c.trim());
+      h+='<table><tr>'+cells(rows[0]).map(c=>`<th>${inl(c)}</th>`).join('')+'</tr>'+rows.slice(2).map(r=>'<tr>'+cells(r).map(c=>`<td>${inl(c)}</td>`).join('')+'</tr>').join('')+'</table>';continue}
+    if(listAt(l)){h+=list(listAt(l)[1].length);continue}
+    if(!l.trim()){i++;continue}
+    let p=[];while(i<L.length&&L[i].trim()&&!listAt(L[i])&&!/^(#|\||```|---)/.test(L[i]))p.push(L[i++]);h+='<p>'+inl(p.join(' '))+'</p>'}
+  return h}
+async function renderHelp(){if(guideMd===null){const r=await fetch('/guide.md');guideMd=await r.text();$('#guideBody').innerHTML=mdToHtml(guideMd);
+    $('#guideBody').addEventListener('click',e=>{const a=e.target.closest('a');if(!a)return;e.preventDefault();const h=a.getAttribute('href');
+      if(h.startsWith('#')){const t=document.getElementById(h.slice(1));if(t)t.scrollIntoView({behavior:'smooth'})}
+      else if(h.startsWith('https://'))api('/api/open-link',{url:h}).then(()=>toast('Opened in your browser'))})}
+  if(renderHelp.jump){const t=document.getElementById(renderHelp.jump);renderHelp.jump=null;if(t)setTimeout(()=>t.scrollIntoView(),50)}}
+function openGuide(anchor){renderHelp.jump=anchor;go('help')}
+
+/* ---------- first-time tour ---------- */
+const TOUR=[[null,'Welcome to ACO Forward','It tags each checkout to its customer in Discord and bills every customer per drop. This 1-minute tour shows every tab. You can replay it any time from Help.'],
+ ['home','Home','Your control room: bot status, today’s checkouts, what needs attention, and checkouts arriving live.'],
+ ['checkouts','Checkouts','Every checkout with its customer, order number and status. Switch Active / Cancelled here, and add a checkout a checkout bot never posted.'],
+ ['needs','Needs assigning','Profile names that don’t start with a Discord username land here. Pick the customer once, and tick “Always use” to remember it.'],
+ ['drops','Drops','A drop ends after 90 quiet minutes. Open one to set the fee per product, preview every message, and send them all at once.'],
+ ['fees','Fees','Who owes what. Mark payments, send reminders, see each customer’s history.'],
+ ['setup','Setup','Start here: paste your bot’s token, pick the channels, and set your payment note. The Help page explains how to make the bot.'],
+ ['help','Help','The full guide: making the Discord bot, a normal drop step by step, updating, backups and fixes for common problems.'],
+ ['#mini','Bot status','Always visible: green = online and tagging. The tray icon (the monkey) shows the same colour. Closing the window keeps it running in the tray.']];
+let tourAt=-1;
+function startTour(){tourAt=0;drawTour()}
+function endTour(){tourAt=-1;$('#tourEl')?.remove();api('/api/config',{tour_done:true}).then(()=>{if(S)S.setup.tour_done=true});go('setup')}
+function drawTour(){let el=$('#tourEl');if(!el){el=document.createElement('div');el.id='tourEl';el.className='tour';el.innerHTML='<div class="hole"></div><div class="tip"></div>';document.body.appendChild(el)}
+  const [t,title,text]=TOUR[tourAt];const hole=el.querySelector('.hole'),tip=el.querySelector('.tip');
+  const target=t?(t.startsWith('#')?$(t):$(`.nav[data-v="${t}"]`)):null;
+  if(target){if(!t.startsWith('#'))go(t);const r=target.getBoundingClientRect();Object.assign(hole.style,{left:r.left-6+'px',top:r.top-6+'px',width:r.width+12+'px',height:r.height+12+'px',opacity:1});
+    Object.assign(tip.style,{left:Math.min(r.right+22,innerWidth-360)+'px',top:Math.max(12,Math.min(r.top-10,innerHeight-230))+'px',transform:'none'})}
+  else{Object.assign(hole.style,{left:'50%',top:'45%',width:'0px',height:'0px'});Object.assign(tip.style,{left:'50%',top:'45%',transform:'translate(-50%,-50%)'})}
+  tip.innerHTML=`<div class="cap">Step ${tourAt+1} of ${TOUR.length}</div><h3>${title}</h3><p>${text}</p><div class="row"><div class="dots">${TOUR.map((_,i)=>`<i class="${i===tourAt?'on':''}"></i>`).join('')}</div>
+   ${tourAt?'<button class="btn b-soft b-sm" id="tBack">Back</button>':'<button class="link" id="tSkip">Skip</button>'}<button class="btn b-fire b-sm" id="tNext">${tourAt===TOUR.length-1?'Go to Setup':'Next'}</button></div>`;
+  $('#tNext').onclick=()=>{if(tourAt===TOUR.length-1)return endTour();tourAt++;drawTour()};
+  if($('#tBack'))$('#tBack').onclick=()=>{tourAt--;drawTour()};if($('#tSkip'))$('#tSkip').onclick=endTour}
+addEventListener('resize',()=>{if(tourAt>=0)drawTour()});
+document.addEventListener('keydown',e=>{if(tourAt<0)return;if(e.key==='Escape')endTour();if(e.key==='ArrowRight'&&tourAt<TOUR.length-1){tourAt++;drawTour()}if(e.key==='ArrowLeft'&&tourAt>0){tourAt--;drawTour()}});
+
+go((location.hash||'#home').slice(1));load();setInterval(()=>{if(view==='home'&&S)renderHome()},30000);
+</script>
+</body></html>

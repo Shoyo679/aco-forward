@@ -1,0 +1,9 @@
+.venv/
+data/
+demo-data/
+__pycache__/
+icons/
+*.log
+icon.ico
+logo.png
+*.zip
