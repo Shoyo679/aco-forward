@@ -28,14 +28,15 @@ This guide is also inside the app: click **Help** in the sidebar.
 You need a Windows 10 or 11 PC. ACO Forward only works while it's running (it sits in the tray), so use the PC
 that's on during drops.
 
-1. **Install Python 3.13** (one time): go to https://www.python.org/downloads/, download the Windows installer
-   (64-bit), run it, tick **"Add python.exe to PATH"** at the bottom of the first screen, then **Install Now**.
-2. **Download ACO Forward**: open https://github.com/Shoyo679/aco-forward/releases and, under the newest version,
+1. **Download ACO Forward**: open https://github.com/Shoyo679/aco-forward/releases and, under the newest version,
    download **ACO-Forward-x.y.z.zip** (no GitHub account needed).
-3. **Unzip** it somewhere permanent, for example `C:\ACO Forward` (not in Downloads, which gets cleaned up).
-4. Double-click **Install.bat** in that folder. It sets up everything and makes an **ACO Forward** shortcut on
-   your Desktop and in the Start menu. The first time takes about a minute.
-5. Open **ACO Forward**. A short tour shows you every tab; then go to **Setup**.
+2. **Unzip** it somewhere permanent, for example `C:\ACO Forward` (not in Downloads, which gets cleaned up).
+3. Double-click **Install.bat** in that folder. It sets up everything and makes an **ACO Forward** shortcut on
+   your Desktop and in the Start menu. The first time takes 2-3 minutes.
+   - **No Python yet?** Install.bat downloads Python 3.13 from python.org by itself, checks it's the genuine
+     installer (signed by the Python Software Foundation), and installs it quietly for your Windows account. No
+     admin password, nothing to click.
+4. Open **ACO Forward**. A short tour shows you every tab; then go to **Setup**.
 
 If Windows asks "Windows protected your PC" for Install.bat, click **More info** → **Run anyway**.
 
@@ -300,5 +301,6 @@ The log file `aco-forward.log` (in the data folder) helps if you need to ask for
   this PC (127.0.0.1).
 - Emails, account logins, proxies, addresses and card details from the webhooks are never saved.
 - Order numbers are saved for your Checkouts tab only; they never appear in tags or DMs.
-- The tagged post shows only the tag, product, quantity and profile name.
+- The tagged post shows only the tag, product, site, quantity and profile name (the profile is hidden until
+  someone clicks it).
 - The update check downloads one small public file with the latest version number; it sends nothing about you.

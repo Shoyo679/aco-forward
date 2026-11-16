@@ -20,19 +20,34 @@ if errorlevel 1 (
 )
 
 rem --- find Python 3.13 (or 3.11+) ---
+rem     If it's missing, the official installer is downloaded from python.org, checked (exact fingerprint + signed by
+rem     the Python Software Foundation) and installed quietly for this Windows account only (no admin needed).
+set "PYVER=3.13.9"
+set "PYURL=https://www.python.org/ftp/python/3.13.9/python-3.13.9-amd64.exe"
+set "PYSHA=200DDFF856BBFF949D2CC1BE42E8807C07538ABD6B6966D5113A094CF628C5C5"
+set "PYHOME=%LOCALAPPDATA%\Programs\Python\Python313\python.exe"
 set "PY="
 py -3.13 -c "" >nul 2>nul && set "PY=py -3.13"
+if not defined PY if exist "%PYHOME%" set "PY="%PYHOME%""
 if not defined PY python -c "import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)" >nul 2>nul && set "PY=python"
-if not defined PY (
-  echo  Python 3.13 isn't installed.
-  echo  1. Download it from https://www.python.org/downloads/  ^(Windows installer, 64-bit^)
-  echo  2. In the installer, tick "Add python.exe to PATH", then Install Now.
-  echo  3. Run Install.bat again.
-  echo.
-  start "" "https://www.python.org/downloads/"
-  pause
-  exit /b 1
-)
+if not defined PY goto getpython
+goto havepython
+
+:getpython
+echo  Python isn't installed yet. Downloading Python %PYVER% from python.org ^(about 28 MB^)...
+set "PYEXE=%TEMP%\aco-forward-python-%PYVER%.exe"
+powershell -NoProfile -ExecutionPolicy Bypass -Command "$ProgressPreference='SilentlyContinue'; [Net.ServicePointManager]::SecurityProtocol=[Net.SecurityProtocolType]::Tls12; try { Invoke-WebRequest '%PYURL%' -OutFile '%PYEXE%' -UseBasicParsing } catch { exit 1 }; if ((Get-FileHash '%PYEXE%' -Algorithm SHA256).Hash -ne '%PYSHA%') { Remove-Item '%PYEXE%'; exit 2 }; $s = Get-AuthenticodeSignature '%PYEXE%'; if ($s.Status -ne 'Valid' -or $s.SignerCertificate.Subject -notlike '*Python Software Foundation*') { Remove-Item '%PYEXE%'; exit 3 }; exit 0"
+if errorlevel 3 goto pybad
+if errorlevel 2 goto pybad
+if errorlevel 1 goto pynet
+echo  Installing Python %PYVER% for your Windows account ^(1-2 minutes, no windows to click^)...
+start "" /wait "%PYEXE%" /quiet InstallAllUsers=0 PrependPath=1 Include_launcher=1 InstallLauncherAllUsers=0 Include_test=0 Include_doc=0 Shortcuts=0
+del "%PYEXE%" >nul 2>nul
+if not exist "%PYHOME%" goto pyfail
+set "PY="%PYHOME%""
+echo  Python %PYVER% installed.
+
+:havepython
 
 rem --- the app's own Python environment (.venv, inside this folder) ---
 if not exist ".venv\Scripts\python.exe" (
@@ -66,5 +81,30 @@ echo.
 echo  Something went wrong (see the lines above). Check your internet connection and run Install.bat again.
 echo  If it keeps failing, send a screenshot of this window to the person who gave you ACO Forward.
 echo.
+pause
+exit /b 1
+
+:pynet
+echo.
+echo  Couldn't download Python. Check your internet connection and run Install.bat again.
+echo.
+pause
+exit /b 1
+
+:pybad
+echo.
+echo  The downloaded Python installer didn't pass the safety check, so it was deleted and nothing was installed.
+echo  Run Install.bat again. If it happens again, install Python 3.13 yourself from https://www.python.org/downloads/
+echo  ^(tick "Add python.exe to PATH"^), then run Install.bat.
+echo.
+pause
+exit /b 1
+
+:pyfail
+echo.
+echo  Python didn't finish installing. Install Python 3.13 yourself from https://www.python.org/downloads/
+echo  ^(tick "Add python.exe to PATH"^), then run Install.bat again.
+echo.
+start "" "https://www.python.org/downloads/"
 pause
 exit /b 1

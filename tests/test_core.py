@@ -78,16 +78,27 @@ class ParseTest(unittest.TestCase):
         self.assertEqual(parse.parse(rec(10, {**shikari(), "title": "Successful Checkout (Review Hold)"}), KEY)["kind"],
                          "success")
 
-    def test_post_has_only_product_qty_profile(self):
+    def test_post_has_only_product_site_qty_profile(self):
         c = {"cancelled": 0, "user_id": "42", "problem": None, "profile": "nova.runs 3", "product_name": "Sample Box",
-             "qty": 2, "image": None, "price": 59.99, "store": "Target", "bot": "valor"}
+             "qty": 2, "image": None, "price": 59.99, "store": "Target", "bot": "valor", "order_number": "777-1"}
         content, e = bot.post_parts(c)
         self.assertIn("<@42>", content)
-        self.assertEqual([f.name for f in e.fields], ["Product", "Qty", "Profile"])
-        self.assertNotIn("59", repr(e.to_dict()))
-        self.assertNotIn("Target", repr(e.to_dict()))
-        self.assertNotIn("valor", repr(e.to_dict()).lower())
+        self.assertEqual(e.description, "**Product:** Sample Box\n**Site:** Target\n**Qty:** 2\n"
+                                        "**Profile:** ||nova.runs 3||")          # one line each, profile hidden
+        self.assertEqual(e.fields, [])
+        flat = repr(e.to_dict()) + content
+        for left_out in ("59", "valor", "777-1"):
+            self.assertNotIn(left_out, flat.lower())
         self.assertIsNone(e.to_dict().get("footer"))
+
+    def test_post_spoiler_edge_cases(self):
+        base = {"cancelled": 0, "user_id": None, "problem": None, "product_name": "Box", "qty": 1, "image": None}
+        content, e = bot.post_parts({**base, "profile": "bad|name 1", "store": None})
+        self.assertIn("**Profile:** ||badname 1||", e.description)                 # "|" can't break the spoiler
+        self.assertIn("**Site:** —", e.description)
+        self.assertIn("profile ||`badname 1`||", content)                           # unassigned line hidden too
+        _, e2 = bot.post_parts({**base, "profile": None, "store": "Walmart", "user_id": "1"})
+        self.assertIn("**Profile:** —", e2.description)                             # added by hand: no profile
 
 
 class _StoreBase(unittest.TestCase):

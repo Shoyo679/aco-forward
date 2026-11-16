@@ -2,8 +2,9 @@
 sends each customer their checkout summary by DM. Runs in its own thread with its own asyncio loop; the dashboard
 calls it through run() / the plain methods below.
 
-The tagged post shows only the tag, product, quantity and profile name (+ the product picture). Never the checkout
-bot, price, store, account, email, proxy or order number, and no footer (owner, Nov 16 2026).
+The tagged post shows only the tag and four lines: Product, Site, Qty and Profile (a spoiler: click to reveal), plus
+the product picture (owner, Nov 16 2026; Site + spoiler in 1.0.1). Never the checkout bot, price, account, email,
+proxy or order number, and no footer.
 """
 from __future__ import annotations
 
@@ -26,6 +27,23 @@ def message_record(m: discord.Message) -> dict:
             "jump_url": m.jump_url, "embeds": [e.to_dict() for e in m.embeds]}
 
 
+def _spoiler(text: str | None, code: bool = False) -> str:
+    """Hidden until clicked. "|" would end the spoiler early, so it's removed."""
+    t = (text or "").replace("|", "").replace("`", "").strip()
+    if not t:
+        return "—"
+    return f"||`{t}`||" if code else f"||{discord.utils.escape_markdown(t)}||"
+
+
+def post_text(c: dict) -> str:
+    """Product / Site / Qty / Profile, one "Label: value" line each."""
+    esc = discord.utils.escape_markdown
+    return "\n".join([f"**Product:** {esc((c['product_name'] or 'Unknown product')[:300])}",
+                      f"**Site:** {esc(c.get('store') or '—')}",
+                      f"**Qty:** {c['qty']}",
+                      f"**Profile:** {_spoiler((c['profile'] or '')[:100])}"])
+
+
 def post_parts(c: dict) -> tuple[str, discord.Embed]:
     """The tagged copy of a checkout in the output channel."""
     if c["cancelled"]:
@@ -38,11 +56,8 @@ def post_parts(c: dict) -> tuple[str, discord.Embed]:
         content = f"<@{c['user_id']}> checked out" if not c["cancelled"] else f"~~<@{c['user_id']}> checked out~~"
     else:
         why = c["problem"] or "no member has that username"
-        content = f"⚠️ Unassigned: profile `{(c['profile'] or 'none')[:60]}`: {why.lower()}"
-    e = discord.Embed(title=title, colour=colour)
-    e.add_field(name="Product", value=(c["product_name"] or "Unknown product")[:1000], inline=False)
-    e.add_field(name="Qty", value=str(c["qty"]), inline=True)
-    e.add_field(name="Profile", value=(c["profile"] or "—")[:100], inline=True)
+        content = f"⚠️ Unassigned: profile {_spoiler((c['profile'] or 'none')[:60], code=True)}: {why.lower()}"
+    e = discord.Embed(title=title, colour=colour, description=post_text(c))
     if c["image"]:
         e.set_thumbnail(url=c["image"])
     return content, e
@@ -367,11 +382,10 @@ class Forwarder:
         ch = self._output()
         if ch is None:
             raise RuntimeError("Pick an output channel first.")
-        e = discord.Embed(title="Checked out", colour=GREEN, description="Test post: this is how tagged checkouts look.")
-        e.add_field(name="Product", value="Sample product", inline=False)
-        e.add_field(name="Qty", value="1", inline=True)
-        e.add_field(name="Profile", value=f"{self.me['name'] if self.me else 'username'} 1", inline=True)
-        await ch.send("Test post from ACO Forward", embed=e, allowed_mentions=discord.AllowedMentions.none())
+        _, e = post_parts({"cancelled": 0, "user_id": "x", "problem": None, "product_name": "Sample product",
+                           "store": "Target", "qty": 1, "image": None,
+                           "profile": f"{self.me['name'] if self.me else 'username'} 1"})
+        await ch.send("Test post from ACO Forward: this is how tagged checkouts look", embed=e, allowed_mentions=discord.AllowedMentions.none())
         return f"Posted in #{ch.name}"
 
     def test_post(self) -> str:

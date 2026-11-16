@@ -2,6 +2,18 @@
 
 Newest first. The version is in `version.py`.
 
+## 1.0.1 (Nov 16 2026)
+
+- **Tagged post:** one line each: **Product**, **Site** (new), **Qty**, **Profile**. The profile is a spoiler
+  (click to reveal), also on the "Unassigned" line. Applies to new posts and edits; older posts keep their look.
+- **Install.bat installs Python by itself** when it's missing: downloads the official Python 3.13.9 installer from
+  python.org, checks its exact fingerprint and the Python Software Foundation signature, and installs it quietly for
+  this Windows account (no admin). If the check fails, nothing is installed.
+- **Guide:** download without a GitHub account (the repository is public); no separate Python step.
+
+Verification: 25 tests; download check accepts the real installer and refuses a wrong fingerprint; full Install.bat
+run on a fresh copy.
+
 ## 1.0.0 (Nov 16 2026)
 
 First version.

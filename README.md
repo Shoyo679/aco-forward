@@ -6,8 +6,8 @@ summary with their fees by DM.
 
 - **Tag:** the profile name up to the first space is the customer's Discord **username**
   (`nova.runs 1cxd` → `@nova.runs`). Capitals are ignored.
-- **Tagged post:** only the tag, product, quantity and profile name (+ the product picture). No checkout bot, price,
-  store, account, email, proxy or order number.
+- **Tagged post:** the tag, then one line each: Product, Site, Qty, Profile (a spoiler: click to reveal), plus the
+  product picture. No checkout bot, price, account, email, proxy or order number.
 - **Needs assigning:** checkouts whose profile name matches nobody are listed with a warning. Assign them by hand,
   and optionally make the app always use that customer for that profile name.
 - **Drops:** a drop ends after 90 minutes with no checkouts. Combine open drops that are next to each other (a sent
@@ -35,10 +35,10 @@ summary with their fees by DM.
 
 ## Install (for whoever runs it)
 
-1. Install Python 3.13 from python.org (tick "Add python.exe to PATH").
-2. Download `ACO-Forward-x.y.z.zip` from the GitHub release and unzip it somewhere permanent.
-3. Double-click **Install.bat** (makes the app's Python environment and the Desktop / Start menu shortcuts).
-4. Open **ACO Forward**: a short tour shows every tab; **GUIDE.md** (also the **Help** tab) explains everything,
+1. Download `ACO-Forward-x.y.z.zip` from the GitHub release and unzip it somewhere permanent.
+2. Double-click **Install.bat**: installs Python 3.13 if it's missing (official python.org installer, checked by
+   fingerprint and signature, per-user, no admin), makes the app's Python environment and the shortcuts.
+3. Open **ACO Forward**: a short tour shows every tab; **GUIDE.md** (also the **Help** tab) explains everything,
    including how to make the Discord bot.
 
 **Updating:** quit from the tray, unzip the new version over the folder, run Install.bat again. The app shows a
